@@ -23,6 +23,7 @@ and their smart contract programming experiences:
 `ink` is described in their readme as an "eDSL",
 or "embedded domain-specific language".
 
+TODO
 
 
 ## What's my goal
@@ -105,9 +106,10 @@ that links to a wiki:
 
 > http://wiki.polkadot.network/en/latest/
 
-Prominent docs on a wiki don't give me great confidence.
+Having important docs on a wiki don't give me great confidence.
 
 The wiki though looks like typical docs,
+not a wiki,
 and seems to have a good deal of content.
 On it I find the "builder's portal":
 
@@ -117,8 +119,23 @@ So this _seems_ like a good place to be as a new Polkadot smart
 contract developer.
 For now I think I'll ignore the Substrate website and follow these docs.
 
+So the documentation flow here seems to have not worked for me:
+the moste prominent links were leading me to Substrate documentation,
+while I think I wanted to end up at the Polkadot Builder's Portal,
+the link to which was not as obvious.
 
-## Reading the Builder's Portal
+Aside: clicking several clicks down the Substrate documentation flow
+leads me the Substrate Developer Hub:
+
+> https://substrate.dev/docs/en/
+
+This also seems useful,
+and I'm guessing I will need it eventually,
+but for now I'm going to follow the _Polkadot_ docs,
+not the _Substrate_ docs.
+
+
+## Reading the Polkadot Builder's Portal
 
 There are a lot of subjects to read here,
 most of them not directly about getting started with smart contract programming.
@@ -188,5 +205,65 @@ in a domain that is already extremely complicated.
 
 ## So you want to build a smart contract
 
+Following the previously-linked docs here:
+
+> https://wiki.polkadot.network/docs/en/build-build-with-polkadot#so-you-want-to-build-a-smart-contract
+
+Apparently smart contracts today can only be developed on a local development parachain.
+According to the docs there aren't live parachains available for smart contract development yet.
+
+So we're going to have to create a Substrate parachain for ourselves.
+Substrate seems to be very flexible,
+with building blocks called _pallets_,
+and to create a WASM smart-contract parachain
+we need to use the [Contracts pallet][cpt].
+
+[cpt]: https://github.com/paritytech/substrate/tree/master/frame/contracts
+
+The docs have mentioned the "FRAME" library a few times,
+but I've missed a definition of what that is.
+
+I see some typos in the docs.
+
+We're good open-source citizens: let's see if we can find the source and fix them!
+
+Yeah, this is a "wiki",
+which in this case actually means that it's just a GitHub repo,
+and the "edit" link leads me to the GitHub online editor.
+It's pretty awkward as a document-editing interface,
+but for a simple patch I manage to make the edit and submit a PR after two tries:
+
+> https://github.com/w3f/polkadot-wiki/pull/1291
+
+The docs go on to mention [Edgeware],
+a live smart-contract-enabled Substrate chain
+(but not yet a parachain)
+where devs can deploy their contracts.
+So I was wrong (or the docs were wrong)
+that contracts can only be developed on dev nets,
+and not deployed to a live network.
+
+The "so you want to builda smart contract docs"
+cover a few more concepts and then says
+
+> Good luck!
+
+It's not obvious what to do next,
+but the docs do indicate that the state of the ecosystem is early,
+so it's pretty expected.
+So we have to create our own game plan.
+
+The game plan:
+
+- create a substrate devnet with the contracts pallet
+- write an ink contract
+- test that ink contract on our local devnet
+
+If we can accomplish that within this blog post I'll be happy.
+
+I'm kinda excited that writing a smart contract here first involves creating my own personal blockchain.
+I hope that it is easy to do,
+and that having my own blockchain gives me lots of control during development.
 
 
+## Creating a blockchain with substrate
