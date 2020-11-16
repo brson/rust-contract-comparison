@@ -568,6 +568,8 @@ Nov 16 00:13:33.670  INFO 💤 Idle (0 peers), best: #1 (0x1601…c491), finaliz
 
 Those emoji are so silly,
 but I love seeing them.
+I can imagine they make scanning the log easier once you are familiar with them,
+so maybe not as silly as they look.
 
 I am relieved that Substrate makes it easy to run a temporary devnet with a single command,
 no generating keys,
