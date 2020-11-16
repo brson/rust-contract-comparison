@@ -535,7 +535,6 @@ The instructions say to run
 
 ```
 ./target/release/node-template --dev --tmp
-
 ```
 
 but I personally don't like to simply run binaries out of the `target` directory,
