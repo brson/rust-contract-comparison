@@ -252,8 +252,8 @@ cover a few more concepts and then says
 
 It's not obvious what to do next,
 but the docs do indicate that the state of the ecosystem is early,
-so it's pretty expected.
-So we have to create our own game plan.
+so that's not a surprise.
+We have to create our own game plan.
 
 The game plan:
 
