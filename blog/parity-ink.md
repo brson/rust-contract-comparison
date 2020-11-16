@@ -306,9 +306,11 @@ the docs indicate to use the two tutorials:
 
 I figure we'll do the first, then the second.
 
-We've only just started reading the top-level docs on substrate.dev though.
+We've only just started reading the top-level docs on [substrate.dev] though.
 Looking at the sidebar I see lots of interesting topics I want to know more about,
 but for now we'll go straight to the tutorial.
+
+[substrate.dev]: https://substrate.dev
 
 
 ## Following the "create your first substrate chain" tutorial
