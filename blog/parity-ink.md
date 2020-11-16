@@ -327,6 +327,7 @@ There's a one-liner for setting up development tools:
 
 but reading about what it does,
 I should already have everything it installs on my box.
+I skip that step.
 
 The first step is to clone a "node template":
 
