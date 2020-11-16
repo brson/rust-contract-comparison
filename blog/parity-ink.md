@@ -473,7 +473,7 @@ Thanks, Rust.
 I have my own blockchain now, yay!
 Thanks again, Rust.
 
-These would have been difficult problems to overcome for somewhat not already familiar with nightly Rust development,
+These would have been difficult problems to overcome for someone not already familiar with nightly Rust development,
 and I can tell the Substrate docs are trying to be friendly to non-Rust devs.
 
 Time to continue the "create your first substrate chain" tutorial...
