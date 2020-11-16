@@ -243,7 +243,9 @@ So I was wrong (or the docs were wrong)
 that contracts can only be developed on dev nets,
 and not deployed to a live network.
 
-The "so you want to builda smart contract docs"
+[Edgeware]: https://edgewa.re/
+
+The "so you want to build a smart contract docs"
 cover a few more concepts and then says
 
 > Good luck!
