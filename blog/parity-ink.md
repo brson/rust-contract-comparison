@@ -296,7 +296,7 @@ this seems right.
 
 Oh, there's so much documentation here.
 It seems impossible to follow it in any linear way.
-That's ok.
+That's ok - at least there are docs.
 
 For running a Substrate Node,
 the docs indicate to use the two tutorials:
