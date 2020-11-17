@@ -18,13 +18,35 @@ and their smart contract programming experiences:
 [Ethereum]: https://github.com/Aimeedeer/bigannouncement/blob/master/doc/hacklog.md
 
 
-## About Ink, Parity, Polkadot, and Substrate
+## About Parity, Polkadot, Substrate, and Ink
 
-`ink` is described in their readme as an "eDSL",
-or "embedded domain-specific language".
+Parity is one of the longest-running blockchain companies.
+Created by Ethereum experts,
+they implemented the main alternative Ethereum implementation,
+[OpenEthereum].
+With that experience,
+they moved on to create Polkadot,
+a proof-of-work sharded blockchain,
+that is in many ways similar to Ethereum 2,
+while also making several different design choices.
+Importantly,
+Polkadot is built on a seemingly very flexible blockchain toolkit,
+called Substrate.
+Substrate can be used to build blockchains;
+one of those blockchains is the Polkadot relay chain,
+which is analagous to the Ethereum 2 beacon chain,
+a chain with minimal capabilities designed specifically
+to secure yet other blockchains,
+called "parachains".
+Substrate can also be used to build those parachains.
+A substrate blockchain can run smart contracts in
+either WASM or Ethereum's EVM.
+Those WASM contracts are written with `ink`,
+which is described in their readme as an "eDSL",
+or "embedded domain-specific language",
+which in this case means that it is an expressive Rust library.
 
-TODO
-
+[OpenEthereum]: https://github.com/openethereum/openethereum
 
 ## What's my goal
 
@@ -541,7 +563,7 @@ but I personally don't like to simply run binaries out of the `target` directory
 so I try:
 
 ```
-$WASM_BUILD_TOOLCHAIN=nightly-2020-10-05 cargo run --release -- --dev --tmp
+$ WASM_BUILD_TOOLCHAIN=nightly-2020-10-05 cargo run --release -- --dev --tmp
 ```
 
 The output is exciting:
@@ -641,8 +663,15 @@ It's lovely.
 
 TODO - insert pics
 
-There's so much fun looking stuff to mess with here,
+There's so much fun-looking stuff to mess with here,
 but for now I'm not going to.
+
+Really,
+this is a pretty impressive experience for a newbie -
+lots of interesting things to wonder about and play with,
+from the docs,
+to the node logging,
+to the default UI.
 
 I attempt to navigate to `localhost:9516`,
 the prometheus address,
@@ -658,4 +687,161 @@ but it seems if I want a nice metrecs frontend I need to do some more work.
 
 Cool.
 
+I note that,
+compared to NEAR,
+it has taken me quite a bit longer to get started actually writing a contract,
+since I have first had to learn how to build my own blockchain.
+I don't particularly mind this,
+as building a substrate blockchain has been interesting,
+and I am excited about the possibilities,
+but it is notable.
+
 Let's build a Substrate smart contract.
+
+Note: It seems like for now we don't actually need to follow the "start a private network tutorial"
+that I said I was going to follow,
+so I'm not going to do that.
+
+
+## Really, let's write an ink contract
+
+Ok, I've gotten lost in the docs and don't actually know where to look to start writing a smart contract.
+
+I'm going to go to the [Substrate Tutorial Catalog][cat] and see if there's an ink tutorial there.
+
+[cat]: https://substrate.dev/tutorials
+
+There is:
+
+> https://substrate.dev/substrate-contracts-workshop/
+
+It's got a cute crab picture on the front page.
+
+I notice that this tutorial has a different visual style than the last one,
+even though they are on the same site.
+It looks like this one was designed as a slide deck for a workshop,
+so it's understably presented differently,
+but I am starting to get the impression that even though there's quite a lot of Substrate/Polkadot docs,
+they are inconsintently integrated into a single, comprehensible, whole.
+
+On first glance,
+this tutorial _appears_ to re-cover the substrate node setup we've already done
+to this point.
+So probably we could have just started right here,
+and not done the previous tutorial.
+
+This includes similar instructions for setting up the nightly toolchain:
+
+```
+rustup component add rust-src --toolchain nightly
+rustup target add wasm32-unknown-unknown --toolchain stable
+```
+
+And I note that it does not mention the specific `nightly-2020-10-05` toolchain that
+we found works.
+So probably anybody that runs this tutorial,
+like the last one,
+is going to run into mysterious build errors.
+I plan to attempt to follow the build commands as-written in the tutorial,
+then adjust them as needed to use the working toolchain.
+
+The first step in the tutorial that I haven't already done is ["Installing the Canvas Node"][cn].
+I don't know what a canvas node is, but let's do it.
+
+[cn]: https://substrate.dev/substrate-contracts-workshop/#/0/setup?id=installing-the-canvas-node
+
+The command for it is
+
+```
+cargo install canvas-node --git https://github.com/paritytech/canvas-node.git --tag v0.1.3 --force
+```
+
+So `canvas-node` is some kind of tool,
+written in Rust.
+I open the `canvas-node` GitHub.
+It is described as "Node implementation for Canvas, a Substrate chain for smart contracts."
+
+I've learned something new.
+The earliest docs led me to believe there were no live parachains for smart contract development,
+then we learned about Moonbeam,
+and now we learn about Canvas.
+
+It seems like the previous work we did to build our own Substrate chain was not needed at all,
+and that for now we are going to be using Canvas.
+
+I check the latest tags for `canvas-node` and `v0.1.3` is the latest,
+so the tutorial is up to date.
+
+I run the command to install `canvas-node`.
+
+The command fails during the build:
+
+```
+   Compiling sc-cli v0.8.0 (https://github.com/paritytech/substrate#11ace4ef)
+error[E0107]: wrong number of type arguments: expected 10, found 9
+   --> node/src/service.rs:157:14
+    |
+157 |         let aura = sc_consensus_aura::start_aura::<_, _, _, _, _, AuraPair, _, _, _>(
+    |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected 10 type arguments
+```
+
+It's a build failure.
+I clone `canvas-node` myself,
+check out the same version from tag `v0.1.3`,
+and build it
+
+```
+git clone https://github.com/paritytech/canvas-node.git
+cd canvas-node
+git checkout v0.1.3
+cargo build --release
+```
+
+Surprisingly this build succeeds.
+
+I note in the output of both builds,
+the substrate git revision being compiled is different
+in the `cargo install` invocation
+than the `cargo build` invocation from inside the repo:
+
+```
+$ cargo install canvas-node --git https://github.com/paritytech/canvas-node.git --tag v0.1.3 --force
+...
+   Compiling sc-offchain v2.0.0 (https://github.com/paritytech/substrate#11ace4ef)
+   Compiling sc-informant v0.8.0 (https://github.com/paritytech/substrate#11ace4ef)
+...
+
+$ cargo build --release
+...
+   Compiling sc-consensus-slots v0.8.0 (https://github.com/paritytech/substrate#cab98654)
+   Compiling substrate-build-script-utils v2.0.0 (https://github.com/paritytech/substrate#cab98654)
+...
+```
+
+In one it cargo is using commit `11ac`, the other `cab`.
+`cab` is the correct one per the lockfile,
+so it _seems_ like `cargo install` is ignoring the lockfile.
+
+I google for "cargo install ignores lockfile" and find
+
+> https://github.com/rust-lang/cargo/issues/7169
+
+It's a long thread from 2019 and I don't read it all,
+but it seems like this is a bug.
+The thread indicates there's a new `--locked` flag that should obey the lockfile.
+
+I try the original `cargo install` command again,
+but this time with `--locked`:
+
+```
+$ cargo install canvas-node --git https://github.com/paritytech/canvas-node.git --tag v0.1.3 --force --locked
+```
+
+This works.
+
+I [submit a PR][tutpr] to fix the tutorial.
+
+[tutpr]: https://github.com/substrate-developer-hub/substrate-contracts-workshop/pull/88
+
+The `canvas-node` release build takes TODO minutes.
+
