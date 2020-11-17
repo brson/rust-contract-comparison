@@ -843,5 +843,240 @@ I [submit a PR][tutpr] to fix the tutorial.
 
 [tutpr]: https://github.com/substrate-developer-hub/substrate-contracts-workshop/pull/88
 
-The `canvas-node` release build takes TODO minutes.
+The `canvas-node` release build takes 31 minutes.
+That's pretty rough, even for a Rust project.
 
+
+## Creating an ink project
+
+Moving on to the next step:
+
+> https://substrate.dev/substrate-contracts-workshop/#/0/creating-an-ink-project
+
+I create a new contract with `cargo contrat`
+
+```
+$ cargo contract new flipper
+        Created contract flipper
+```
+
+This creates a new `flipper` directory containing `Cargo.toml` and `lib.rs`,
+so a simple Rust library.
+
+`Cargo.toml`:
+
+```toml
+[package]
+name = "flipper"
+version = "0.1.0"
+authors = ["[your_name] <[your_email]>"]
+edition = "2018"
+
+[dependencies]
+ink_primitives = { version = "3.0.0-rc2", default-features = false }
+ink_metadata = { version = "3.0.0-rc2", default-features = false, features = ["derive"], optional = true }
+ink_env = { version = "3.0.0-rc2", default-features = false }
+ink_storage = { version = "3.0.0-rc2", default-features = false }
+ink_lang = { version = "3.0.0-rc2", default-features = false }
+
+scale = { package = "parity-scale-codec", version = "1.3", default-features = false, features = ["derive"] }
+scale-info = { version = "0.4.1", default-features = false, features = ["derive"], optional = true }
+
+[lib]
+name = "flipper"
+path = "lib.rs"
+crate-type = [
+	# Used for normal contract Wasm blobs.
+	"cdylib",
+]
+
+[features]
+default = ["std"]
+std = [
+    "ink_metadata/std",
+    "ink_env/std",
+    "ink_storage/std",
+    "ink_primitives/std",
+    "scale/std",
+    "scale-info/std",
+]
+ink-as-dependency = []
+```
+
+It links to a bunch of ink crates, as well as crates for something called "scale",
+it also turns on a bunch of "std" features.
+That's curious because it implies ink contracts will use the standard library.
+Since contracts don't run in a traditional OS,
+I wonder if they have their own fork of `std`,
+or otherwise what this means.
+
+This tool also has put `lib.rs` in a nonstandard place,
+in the top-level directory instead of a `src` subdirectory.
+Personally, I'm ok with that,
+and some of my own multi-crate projects do the same
+to avoid a proliferation of `src` dirs that don't accomplish much
+while also making project directory traversal more tedious.
+For a standard tool though I might expect this to follow the standard layout.
+
+This project is also a `cdylib`.
+That might suggest that it is using a special loading scheme.
+
+The `lib.rs` file:
+
+```rust
+#![cfg_attr(not(feature = "std"), no_std)]
+
+use ink_lang as ink;
+
+#[ink::contract]
+mod flipper {
+
+    /// Defines the storage of your contract.
+    /// Add new fields to the below struct in order
+    /// to add new static storage fields to your contract.
+    #[ink(storage)]
+    pub struct Flipper {
+        /// Stores a single `bool` value on the storage.
+        value: bool,
+    }
+
+    impl Flipper {
+        /// Constructor that initializes the `bool` value to the given `init_value`.
+        #[ink(constructor)]
+        pub fn new(init_value: bool) -> Self {
+            Self { value: init_value }
+        }
+
+        /// Constructor that initializes the `bool` value to `false`.
+        ///
+        /// Constructors can delegate to other constructors.
+        #[ink(constructor)]
+        pub fn default() -> Self {
+            Self::new(Default::default())
+        }
+
+        /// A message that can be called on instantiated contracts.
+        /// This one flips the value of the stored `bool` from `true`
+        /// to `false` and vice versa.
+        #[ink(message)]
+        pub fn flip(&mut self) {
+            self.value = !self.value;
+        }
+
+        /// Simply returns the current value of our `bool`.
+        #[ink(message)]
+        pub fn get(&self) -> bool {
+            self.value
+        }
+    }
+
+    /// Unit tests in Rust are normally defined within such a `#[cfg(test)]`
+    /// module and test functions are marked with a `#[test]` attribute.
+    /// The below code is technically just normal Rust code.
+    #[cfg(test)]
+    mod tests {
+        /// Imports all the definitions from the outer scope so we can use them here.
+        use super::*;
+
+        /// We test if the default constructor does its job.
+        #[test]
+        fn default_works() {
+            let flipper = Flipper::default();
+            assert_eq!(flipper.get(), false);
+        }
+
+        /// We test a simple use case of our contract.
+        #[test]
+        fn it_works() {
+            let mut flipper = Flipper::new(false);
+            assert_eq!(flipper.get(), false);
+            flipper.flip();
+            assert_eq!(flipper.get(), true);
+        }
+    }
+}
+```
+
+So the first thing this does is conditionally turn off `std`.
+Now I have an idea of why the manifest has a bunch of `std` features:
+given the presence of unit tests here,
+I am guess that,
+when testing,
+the ink libraries are built with mock capabilities that depend
+on the standard library,
+and when not testing,
+they are built with capabilities derived from the substrate no-std runtime.
+
+This file has a bunch of `ink` attributes,
+which surely invoke complex code-generation macros.
+This is typical Rust smart contracts,
+but also of embedded Rust projects generally:
+these types of programs have their own non-standard runtime setup
+that is just a bunch of boilerplate,
+and hiding that boilerplate beneath macros is often seen as desirable.
+The Rust standard library itself does a similar runtime setup routine
+before executing a standard `main` function.
+
+I would be curious to see the underlying code emitted by these macros.
+
+We see here several macros and here are my guesses as to what they do.
+These are just guesses!
+
+- `#[ink::contract]` - emit whatever entry point is required by the Substrate
+  runtime. Also establish a context for interpreting the remaining ink macros.
+- `#[ink(storage)]` - emit the special serialization required by smart contract
+  storage.
+- `#[ink(constructor)]` - emit the appropriate runtime method dispatch for constructing
+  the `Flipper` contract and serializing it into the blockchain.
+- `#[ink(message)]` - emit the appropriate runtime method dispatch for running
+  smart contract methods.
+
+The use of these macros is why ink is described as an "embedded domain specific language".
+I'm curious if there are other aspects of the ink library that make it a DSL,
+but so far this is pretty lightweight as a DSL,
+just plain Rust with some runtime glue.
+Which is a good think to my mind.
+Not a fan of clever macros myself.
+
+I see that the unit tests aren't doing any special mock setup
+in order to test contracts.
+I'm guessing that is because the `std` features do that themselves.
+This contrasts with NEAR,
+where mocking is set up manually.
+I don't have enough experience yet to know which approach to prefer.
+
+The contract itself is trivial:
+initialize a contract that bears a boolean,
+optionally with a value.
+Call `flip` to change the value;
+call `get` to read the value.
+
+Testing requires nightly:
+
+```
+$ cargo +nightly test
+     Running target/debug/deps/flipper-4dfd5047053abd9b
+
+running 2 tests
+test flipper::tests::default_works ... ok
+test flipper::tests::it_works ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
+
+```
+
+Oh, no it doesn't:
+
+```
+$ cargo test
+     Running target/debug/deps/flipper-2d62f1e2378cf363
+
+running 2 tests
+test flipper::tests::default_works ... ok
+test flipper::tests::it_works ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
+```
+
+Maybe the tutorial is just priming the reader to _always_ build with nightly,
+since presumably the final wasm contract requires nightly.
