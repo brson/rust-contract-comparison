@@ -1409,7 +1409,7 @@ dtolnay having built many important Rust dev tools.
 
 I install it with
 
-``
+```
 cargo install cargo-expand
 ```
 
