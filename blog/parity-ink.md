@@ -1080,3 +1080,393 @@ test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
 
 Maybe the tutorial is just priming the reader to _always_ build with nightly,
 since presumably the final wasm contract requires nightly.
+
+
+## Building for wasm
+
+Contiuning at the next page of the tutorial:
+
+> https://substrate.dev/substrate-contracts-workshop/#/0/building-your-contract
+
+Substrate contracts are compiled to wasm.
+The `cargo contract` tool that we installed earlier handles some of the details
+of choosing the wasm target.
+
+The command to compile the contract is
+
+```
+$ cargo +nightly contract build
+ [1/3] Building cargo project
+  Downloaded compiler_builtins v0.1.36
+  Downloaded 1 crate (155.3 KB) in 0.41s
+   Compiling compiler_builtins v0.1.36
+   Compiling core v0.0.0 (/home/ubuntu/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core)
+   Compiling rustc-std-workspace-core v1.99.0 (/home/ubuntu/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/rustc-std-workspace-core)
+   Compiling alloc v0.0.0 (/tmp/cargo-xbuildIjCczX)
+    Finished release [optimized] target(s) in 17.01s
+   Compiling proc-macro2 v1.0.24
+...
+```
+
+Well, this is interesting -
+`cargo contract` builds the core library itself.
+I wonder why.
+It's a rare thing to do.
+
+Let's look at `cargo-contract`.
+Here's its underlying invocation of `cargo`:
+
+> https://github.com/paritytech/cargo-contract/blob/master/src/cmd/build.rs#L65
+
+reproduced here:
+
+```rust
+    std::env::set_var(
+        "RUSTFLAGS",
+        "-C link-arg=-z -C link-arg=stack-size=65536 -C link-arg=--import-memory",
+    );
+
+    let cargo_build = |manifest_path: &ManifestPath| {
+        let target_dir = &crate_metadata.cargo_meta.target_directory;
+        util::invoke_cargo(
+            "build",
+            &[
+                "--target=wasm32-unknown-unknown",
+                "-Zbuild-std",
+                "-Zbuild-std-features=panic_immediate_abort",
+                "--no-default-features",
+                "--release",
+                &format!("--target-dir={}", target_dir.to_string_lossy()),
+            ],
+            manifest_path.directory(),
+            verbosity,
+        )?;
+        Ok(())
+    };```
+```
+
+So ink's build tool is customizing the build heavily,
+passing arguments to the wasm linker via rustc using the `RUSTFLAGS`
+environment variable,
+and also setting a variety of `cargo` flags,
+some unstable.
+
+Let's look at some of them:
+
+- `-C link-arg=-z -C link-arg=stack-size=65536`.
+
+  `-C link-arg=` is the way to tell `rustc` to pass flags to the linker.
+  From the [wasm32 target spec][wspec] we see that the linker for wasm is `lld`,
+  the linker from the LLVM project. So if we go to the [lld documentation for wasm][lldwasm]
+  we can probably find out what these flags do.
+
+  This invocation is fascinating:
+  the underlying arguments to `lld` here is `-z stack-size=65536`,
+  but to tell `rustc` to pass these arguments,
+  takes two invocations of `-C link-args`.
+  Pretty ugly.
+
+  Anyway, what seems to be happening here is that `cargo contract` is telling `rustc`
+  to tell `lld` to set the size of the main stack to 64k.
+
+  I don't know where the documentation for this flag is though.
+  A Google search suggests this may be a wasm-specific lld flag.
+
+- `-C link-arg=--import-memory`
+
+  This one should be easier to understand,
+  as it is documented directly on the lld wasm page.
+  Unfortunately, the doc says this about it:
+
+  > Import memory from the environment.
+
+  Ok ... what does that mean?
+
+  A hint from [some Rust wasm page][wasmimport] suggest that this means
+  the wasm runtime will provide the buffer for the program's RAM,
+  instead of the default of the RAM buffer being provided by the program itself.
+  This allows RAM to be shared between wasm programs,
+  but I don't know what substrate is using it for.
+
+- `--target=wasm32-unknown-unknown`
+
+  This is telling the compiler to use the typical wasm target.
+
+- `-Zbuild-std`
+
+  This is why `cargo contract` rebuilt the core library.
+  This is a nightly-only flag that rebuilds the std (or core) library,
+  which can be useful to e.g. build with processor-specific codegen options.
+  In this case the rebuild seems to be in order to set a feature
+  flag, below.
+
+- `-Zbuild-std-features=panic_immediate_abort`
+
+  This is new to me.
+  It's controlling ... something related to panic handling.
+  There are other, stable, mechanisms to turn panics into aborts,
+  so I wonder if this feature flag is doing something else.
+
+  I don't want to look into it now.
+
+- `--no-default-features`
+
+  This is to turn off the `std` feature of our own `flipper` crate,
+  and thus, presumably, to compile without test mocking built in.
+  This is important to know - any features I add to a contract are going
+  to be disabled by `cargo contract`.
+
+[wasmimport]: https://www.hellorust.com/demos/import-memory/index.html
+[wspec]: https://github.com/rust-lang/rust/blob/master/compiler/rustc_target/src/spec/wasm32_unknown_unknown.rs#L19
+[lldwasm]: https://lld.llvm.org/WebAssembly.html
+
+That's all interesting to know.
+Cool.
+
+The contract build continues with
+
+```
+...
+   Compiling flipper v0.1.0 (/tmp/cargo-contract_pOLtdS)
+    Finished release [optimized] target(s) in 55.06s
+ [2/3] Post processing wasm file
+ [3/3] Optimizing wasm file
+wasm-opt is not installed. Install this tool on your system in order to
+reduce the size of your contract's Wasm binary.
+See https://github.com/WebAssembly/binaryen#tools
+
+Your contract is ready. You can find it here:
+/home/ubuntu/substrate/flipper/target/flipper.wasm
+```
+
+The final step is some optional post-processing using the `wasm-opt` tool that I don't have installed.
+
+As part of the build,
+we also need to generate some metadata about the contract, with:
+
+```
+$ cargo +nightly contract generate-metadata
+...
+    Finished release [optimized] target(s) in 2m 31s
+     Running `target/release/metadata-gen`
+        Your metadata file is ready.
+You can find it here:
+/home/ubuntu/substrate/flipper/target/metadata.json
+```
+
+This file contains the "contract ABI",
+which,
+if it is like Ethereum,
+is probably a representation that JavaScript can use to interact with the contract
+via the Substrate RPC mechanism.
+
+Here's the full contents:
+
+```json
+{
+  "metadataVersion": "0.1.0",
+  "source": {
+    "hash": "0x36431d9da78a6bb099474e49c9e35a9c3a04272b58815634082626109826cac6",
+    "language": "ink! 3.0.0-rc2",
+    "compiler": "rustc 1.49.0-nightly"
+  },
+  "contract": {
+    "name": "flipper",
+    "version": "0.1.0",
+    "authors": [
+      "[your_name] <[your_email]>"
+    ]
+  },
+  "spec": {
+    "constructors": [
+      {
+        "args": [
+          {
+            "name": "init_value",
+            "type": {
+              "displayName": [
+                "bool"
+              ],
+              "type": 1
+            }
+          }
+        ],
+        "docs": [
+          " Constructor that initializes the `bool` value to the given `init_value`."
+        ],
+        "name": [
+          "new"
+        ],
+        "selector": "0xd183512b"
+      },
+      {
+        "args": [],
+        "docs": [
+          " Constructor that initializes the `bool` value to `false`.",
+          "",
+          " Constructors can delegate to other constructors."
+        ],
+        "name": [
+          "default"
+        ],
+        "selector": "0x6a3712e2"
+      }
+    ],
+    "docs": [],
+    "events": [],
+    "messages": [
+      {
+        "args": [],
+        "docs": [
+          " A message that can be called on instantiated contracts.",
+          " This one flips the value of the stored `bool` from `true`",
+          " to `false` and vice versa."
+        ],
+        "mutates": true,
+        "name": [
+          "flip"
+        ],
+        "payable": false,
+        "returnType": null,
+        "selector": "0xc096a5f3"
+      },
+      {
+        "args": [],
+        "docs": [
+          " Simply returns the current value of our `bool`."
+        ],
+        "mutates": false,
+        "name": [
+          "get"
+        ],
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "bool"
+          ],
+          "type": 1
+        },
+        "selector": "0x1e5ca456"
+      }
+    ]
+  },
+  "storage": {
+    "struct": {
+      "fields": [
+        {
+          "layout": {
+            "cell": {
+              "key": "0x0000000000000000000000000000000000000000000000000000000000000000",
+              "ty": 1
+            }
+          },
+          "name": "value"
+        }
+      ]
+    }
+  },
+  "types": [
+    {
+      "def": {
+        "primitive": "bool"
+      }
+    }
+  ]
+}
+```
+
+It's mostly self-explanatory.
+What strikes me is that so much of this metadata comes directly from the Rust code,
+and this requires a sophisticated amount of integration with the Rust toolchain.
+Though, thinking about it,
+that integration is probably nearly the same as necessary for the operation of
+the `ink` macros,
+so the ink macros and this metadata generation tool probably share a lot of code.
+
+Before moving on to running this code,
+I want to try one other thing.
+
+
+## What the `ink` macros actually emit
+
+As mentioned earlier,
+`ink`, like other "embedded" Rust platforms,
+uses macros to connect their special runtime to the world of Rust code.
+I very much want to know what it is these `ink` macros are doing.
+We should be able to tell the compiler to show us the result of
+macro expansion.
+
+I just don't know how offhand.
+
+I _think_ I recall some custom tools that make the process of
+expanding Rust macros easy, so I google for "rust macro expand cargo",
+and indeed I find:
+
+> https://github.com/dtolnay/cargo-expand
+
+This a dtolnay tool so I know this is the one to use,
+dtolnay having built many important Rust dev tools.
+
+I install it with
+
+``
+cargo install cargo-expand
+```
+
+(While I'm waiting for it to build I add it to [my list of Rust tools][rtools]).
+
+[rtools]: https://github.com/brson/my-rust-lists/blob/master/rust-cli-tools.md
+
+I try running it with
+
+```
+cargo expand --no-default-features
+```
+
+using `--no-default-features` because I assume that
+having the "std" feature active will effect the output of the macros.
+
+This doesn't quite work,
+and I get a compilation error:
+
+```
+    Checking ink_env v3.0.0-rc2
+error: ink! only support compilation as `std` or `no_std` + `wasm32-unknown`
+  --> /home/ubuntu/.cargo/registry/src/github.com-1ecc6299db9ec823/ink_env-3.0.0-rc2/src/engine/mod.rs:39:9
+   |
+39 | /         compile_error! {
+40 | |             "ink! only support compilation as `std` or `no_std` + `wasm32-unknown`"
+41 | |         }
+   | |_________^
+error[E0432]: unresolved import `crate::engine::EnvInstance`
+  --> /home/ubuntu/.cargo/registry/src/github.com-1ecc6299db9ec823/ink_env-3.0.0-rc2/src/api.rs:29:9
+   |
+29 |         EnvInstance,
+   |         ^^^^^^^^^^^
+   |         |
+   |         no `EnvInstance` in `engine`
+   |         help: a similar name exists in the module: `OnInstance`
+```
+
+We probably have to set some other feature flag?
+Oh, after looking [at the source for this custom compiler error][ccerr],
+the solution is obvious:
+We need to also add `--target=wasm32-unknown-unknown`.
+
+[ccerr]: https://github.com/paritytech/ink/blob/3803a2662e89dfa97b6f8b17e87c0cce2d873f48/crates/env/src/engine/mod.rs#L27
+
+So the right command to expand the ink macros should be
+
+```
+cargo expand --no-default-features --target=wasm32-unknown-unknown
+```
+
+I run it and get ... well, the expanded code is too big to print inline here,
+but here it is in gist form:
+
+> https://gist.github.com/brson/f5b90ed7a70043d09a069725fda853e4
+
+The output is dense.
+There's a lot of codegen magic here.
+It would take some careful reading to get insight into how ink actually works,
+and for now I don't want to do that.
