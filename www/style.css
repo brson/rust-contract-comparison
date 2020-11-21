@@ -1,0 +1,25 @@
+:root {
+    line-height: 1.5em;
+}
+
+div.t {
+    display: table;
+}
+
+div.t > div:first-child {
+    display: table-header-group;
+}
+
+div.t > div {
+    display: table-row;
+}
+
+div.t > div > span {
+    display: table-cell;
+    border: 1px solid gray;
+    padding: 0.5em;
+}
+
+div.t > div > span > code {
+    display: block;
+}

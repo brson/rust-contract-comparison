@@ -1,9 +1,51 @@
+<!doctype html>
+
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="style.css">
+</head>
+
 <section>
+  <h2>Runtime</h2>
+
+  <div class="t">
+    <div>
+      <span>Platform</span>
+      <span>Entry macro?</span>
+      <span>Entry macro decorates</span>
+    </div>
+
+    <div>
+      <span>Near</span>
+      <span>yes <code>#[near_bindgen]</code></span>
+      <span>struct and impl</span>
+    </div>
+
+    <div>
+      <span>Ink (Substrate)</span>
+      <span>yes <code>#[ink::contract]</code></span>
+      <span>mod</span>
+    </div>
+  </div>
 </section>
+
+<section>
+  <h2>Testing</h2>
+
+  <div class="t">
+    <div>
+      <span>Platform</span>
+      <span>Test mocking?</span>
+    </div>
+  </div>
+</section>
+
+
 
 <!--
 
 - runtime setup
+- contract container
 - contract method dispatch
 - test mocking
 
