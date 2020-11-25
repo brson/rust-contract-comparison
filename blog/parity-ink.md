@@ -28,6 +28,8 @@ and also helps other newbies running into the same problems as me.
 In this case,
 I got pretty far into the weeds and wrote quite a lot that ended up
 being kinda irrelevant to my end goal of writing a smart contract with Ink.
+Along the way I took a few detoures to see what ink and the substrate tooling
+is doing under the hood.
 To keep this post from being utterly overwhelming I have broken it into three
 posts:
 
@@ -1506,7 +1508,7 @@ error[E0432]: unresolved import `crate::engine::EnvInstance`
 We probably have to set some other feature flag?
 Oh, after looking [at the source for this custom compiler error][ccerr],
 the solution is obvious:
-We need to also add `--target=wasm32-unknown-unknown`.
+we need to also add `--target=wasm32-unknown-unknown`.
 
 [ccerr]: https://github.com/paritytech/ink/blob/3803a2662e89dfa97b6f8b17e87c0cce2d873f48/crates/env/src/engine/mod.rs#L27
 
