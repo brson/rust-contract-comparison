@@ -973,7 +973,8 @@ while also making project directory traversal more tedious.
 For a standard tool though I might expect this to follow the standard layout.
 
 This project is also a `cdylib`.
-That might suggest that it is using a special loading scheme.
+That might suggest that it is using a special loading scheme,
+or maybe all wasm projects are output as "cdylibs".
 
 The `lib.rs` file:
 
