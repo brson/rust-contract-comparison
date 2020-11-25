@@ -1677,7 +1677,7 @@ so I adjust my SSH tunnel accordingly and navigate
 to http://localhost:3001
 and it all seems to work.
 
-The canvas-ui app has a several-step intro on first-connect,
+The canvas-ui app has a several-step explanatory intro on first-connect,
 but while I've been getting things set up I skipped through it without reading.
 Now I don't know how to get back to it.
 
