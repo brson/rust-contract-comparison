@@ -1184,7 +1184,7 @@ Let's look at some of them:
   we can probably find out what these flags do.
 
   This invocation is fascinating:
-  the underlying arguments to `lld` here is `-z stack-size=65536`,
+  the underlying arguments to `lld` here are `-z stack-size=65536`,
   but to tell `rustc` to pass these arguments,
   takes two invocations of `-C link-args`.
   Pretty ugly.
