@@ -1657,7 +1657,7 @@ git clone https://github.com/paritytech/canvas-ui.git
 I run `yarn install`.
 
 The output is very different than it was for the `substrate-front-end-template`;
-this much be a more complex app.
+this must be a more complex app.
 After output about a million messages like
 
 > YN0013: │ yargs-parser@npm:20.2.4 can't be found in the cache and will be fetched from the remote registry
