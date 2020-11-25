@@ -321,7 +321,7 @@ and not deployed to a live network.
 
 [Edgeware]: https://edgewa.re/
 
-The "so you want to build a smart contract docs"
+The "so you want to build a smart contract" docs
 cover a few more concepts and then says
 
 > Good luck!
