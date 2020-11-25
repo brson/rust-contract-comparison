@@ -165,7 +165,7 @@ contract developer.
 For now I think I'll ignore the Substrate website and follow these docs.
 
 So the documentation flow here seems to have not worked for me:
-the moste prominent links were leading me to Substrate documentation,
+the most prominent links were leading me to Substrate documentation,
 while I think I wanted to end up at the Polkadot Builder's Portal,
 the link to which was not as obvious.
 
@@ -200,7 +200,7 @@ called [Cumulus].
 No, apparently I'm wrong. I quick clickthrough to Cumulous
 reveals that Cumulous builds on Substrate.
 
-[Cumulous]: https://wiki.polkadot.network/docs/en/learn-crosschain
+[Cumulus]: https://wiki.polkadot.network/docs/en/learn-crosschain
 
 I'm quickly getting the impression that hacking in the Polkadot ecosystem
 is going to require a lot of learning.
