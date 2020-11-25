@@ -1,4 +1,4 @@
-# First impressions of Rust smart contract programming with Parity's Ink
+# First impressions of Rust smart contract programming with Parity's Substrate and Ink
 
 I am on a slow journey to learn about smart contract programming in Rust.
 Today I am going to finally dip into [`ink`], a framework for writing
@@ -16,6 +16,28 @@ and their smart contract programming experiences:
 [NEAR]: https://brson.github.io/2020/09/07/near-smart-contracts-rust
 [Nervos]: https://talk.nervos.org/t/experience-report-first-time-building-and-running-ckb/4518/
 [Ethereum]: https://github.com/Aimeedeer/bigannouncement/blob/master/doc/hacklog.md
+
+- Part 1: Creating a chain with Substrate
+  - About Parity, Polkadot, Substrate, and Ink
+  - What's my goal?
+  - The starting point
+  - Reading the Polkadot docs
+  - Reading the Polkadot Builder's Portal
+  - So you want to build a smart contract
+  - Creating a blockchain with substrate
+  - Following the "create your first substrate chain" tutorial
+  - Interlude: What's in the substrate node template?
+  - The build fails
+  - The front-end
+  - Running our new node
+- Part 2: Writing and deploying an Ink contract
+  - Really, let's write an ink contract
+  - Creating an ink project
+  - Building for wasm
+  - Interlude: What the ink macros actually emit
+  - Running a canvas dev node
+  - Running my own canvas-ui
+  - TODO
 
 
 ## About Parity, Polkadot, Substrate, and Ink
@@ -48,7 +70,8 @@ which in this case means that it is an expressive Rust library.
 
 [OpenEthereum]: https://github.com/openethereum/openethereum
 
-## What's my goal
+
+## What's my goal?
 
 I am going to follow the platform's docs as close as I can,
 and write down my thoughts as I do so.
@@ -683,7 +706,7 @@ Some googling reveals that I can get the server metrics from
 
 > http://localhost:9615/metrics
 
-but it seems if I want a nice metrecs frontend I need to do some more work.
+but it seems if I want a nice metrics frontend I need to do some more work.
 
 Cool.
 
