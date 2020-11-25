@@ -1064,7 +1064,7 @@ they are built with capabilities derived from the substrate no-std runtime.
 
 This file has a bunch of `ink` attributes,
 which surely invoke complex code-generation macros.
-This is typical Rust smart contracts,
+This is typical of Rust smart contracts,
 but also of embedded Rust projects generally:
 these types of programs have their own non-standard runtime setup
 that is just a bunch of boilerplate,
