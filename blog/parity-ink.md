@@ -17,20 +17,51 @@ and their smart contract programming experiences:
 [Nervos]: https://talk.nervos.org/t/experience-report-first-time-building-and-running-ckb/4518/
 [Ethereum]: https://github.com/Aimeedeer/bigannouncement/blob/master/doc/hacklog.md
 
-- Part 1: Creating a chain with Substrate
+My process for these first impressions reports is to come to the docs
+as a naive new developer,
+which I usually am,
+and write down all my thoughts as I get lost and make mistakes.
+I hope that this informs the product devs and documentarians about
+what can be improved,
+and also helps other newbies running into the same problems as me.
+
+In this case,
+I got pretty far into the weeds and wrote quite a lot that ended up
+being kinda irrelevant to my end goal of writing a smart contract with Ink.
+To keep this post from being utterly overwhelming I have broken it into three
+posts:
+
+- Part 1 (this post): Wandering around the Parity docs
+- [Part 2: Building a blockchain with Substrate][pt2]
+- [Part 3: Creating a contract with Ink and running it on the Canvas network][pt3]
+
+[pt1]: todo
+[pt2]: todo
+[pt3]: todo
+
+In the end,
+someone that is primarily interested in learning Ink contract development
+should have jumped straight to part 3.
+Someone lost like me though,
+might follow a similarly wandering path to arrive there.
+
+All three posts are up right now.
+
+- Part 1: Getting lost in the docs
   - About Parity, Polkadot, Substrate, and Ink
   - What's my goal?
   - The starting point
   - Reading the Polkadot docs
   - Reading the Polkadot Builder's Portal
   - So you want to build a smart contract
+- Part 2: Creating a blockchain with substrate
   - Creating a blockchain with substrate
   - Following the "create your first substrate chain" tutorial
   - Interlude: What's in the substrate node template?
   - The build fails
   - The front-end
   - Running our new node
-- Part 2: Writing and deploying an Ink contract
+- Part 3: Writing and deploying an Ink contract
   - Really, let's write an ink contract
   - Creating an ink project
   - Building for wasm
@@ -1606,7 +1637,7 @@ I don't like the idea of relying on the hosted canvas-ui frontend while I'm hack
 Can I run it myself?
 Let's try.
 
-I'm assuming it's going to a lot like running `substrate-front-end-template`.
+I'm assuming it's going to be a lot like running `substrate-front-end-template`.
 
 The repo is here:
 
