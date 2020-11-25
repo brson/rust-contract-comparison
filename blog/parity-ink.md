@@ -1090,7 +1090,7 @@ The use of these macros is why ink is described as an "embedded domain specific 
 I'm curious if there are other aspects of the ink library that make it a DSL,
 but so far this is pretty lightweight as a DSL,
 just plain Rust with some runtime glue.
-Which is a good think to my mind.
+Which is a good thing to my mind.
 Not a fan of clever macros myself.
 
 I see that the unit tests aren't doing any special mock setup
