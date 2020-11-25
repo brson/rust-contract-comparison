@@ -1470,3 +1470,163 @@ The output is dense.
 There's a lot of codegen magic here.
 It would take some careful reading to get insight into how ink actually works,
 and for now I don't want to do that.
+
+
+## Running a canvas dev node
+
+Continuing the ink tutorial from
+
+> https://substrate.dev/substrate-contracts-workshop/#/0/running-a-substrate-node
+
+Although ink (reportedly) works with any substrate chain that has the "contracts" pallete,
+ink comes with its own chain for testing, [`canvas`].
+Earlier we installed it with `cargo install canvas-node`,
+and now we're going to use it to run a local devnet,
+and deploy and test our contract.
+I expect this process to be similar to when we ran our own substrate node,
+since canvas is, I assume, a simple substrate chain.
+
+[`canvas`]: https://github.com/paritytech/canvas-node
+
+The command we need to run a devnet is
+
+```
+canvas --dev --tmp
+```
+
+The `--dev` flag is presumably to create a devnet,
+and I'm guessing that `--tmp` means that it will destroy any on-disk resources on exit.
+These are the exact same flags we passed to our own substrate chain.
+
+And running it...
+
+```
+$ canvas --dev --tmp
+2020-11-25 00:05:57  Running in --dev mode, RPC CORS has been disabled.
+2020-11-25 00:05:57  Canvas Node
+2020-11-25 00:05:57  ✌️  version 0.1.0-e189090-x86_64-linux-gnu
+2020-11-25 00:05:57  ❤️  by Canvas, 2020-2020
+2020-11-25 00:05:57  📋 Chain specification: Development
+2020-11-25 00:05:57  🏷 Node name: somber-thread-7554
+2020-11-25 00:05:57  👤 Role: AUTHORITY
+2020-11-25 00:05:57  💾 Database: RocksDb at /tmp/substrateBjvYLz/chains/dev/db
+2020-11-25 00:05:57  ⛓  Native runtime: canvas-8 (canvas-0.tx1.au1)
+2020-11-25 00:05:57  🔨 Initializing Genesis block/state (state: 0x76e4…0f61, header-hash: 0x70f1…6167)
+2020-11-25 00:05:57  👴 Loading GRANDPA authority set from genesis on what appears to be first startup.
+2020-11-25 00:05:57  ⏱  Loaded block-time = 6000 milliseconds from genesis on first-launch
+2020-11-25 00:05:57  Using default protocol ID "sup" because none is configured in the chain specs
+2020-11-25 00:05:57  🏷 Local node identity is: 12D3KooWDdvLqPW8gzaPBWgYjd6Q2yC2abk6713QykMfVAGHVtfr
+2020-11-25 00:05:57  📦 Highest known block at #0
+2020-11-25 00:05:57  〽️ Prometheus server started at 127.0.0.1:9615
+2020-11-25 00:05:57  Listening for new connections on 127.0.0.1:9944.
+2020-11-25 00:06:00  🙌 Starting consensus session on top of parent 0x70f1a0488a744075c07ca30d890d981697ffff0c2ef024e9753b9152afd46167
+2020-11-25 00:06:00  🎁 Prepared block for proposing at 1 [hash: 0x50ff56ca14d680e03c3c1a2a231f27a1c4ffee2c52bba5a8459112f5a375c2ff; parent_hash: 0x70f1…6167; extrinsics (1): [0x115d…2969]]
+2020-11-25 00:06:00  🔖 Pre-sealed block for proposal at 1. Hash now 0x0aee39eb04a2283232d41ca12ea1418f3215378455e2ea4e0e9312ec94553072, previously 0x50ff56ca14d680e03c3c1a2a231f27a1c4ffee2c52bba5a8459112f5a375c2ff.
+2020-11-25 00:06:00  ✨ Imported #1 (0x0aee…3072)
+```
+
+Yep, looks like substrate.
+
+The next step in the tutorial is to use the hosted `canvas-ui` at https://paritytech.github.io/canvas-ui to connect via RPC to the local node.
+As usual, I'm doing my hacking on a remote EC2 server.
+With my remote EC2 setup I already know this isn't going to work and I need to have the proper SSH tunnel set up.
+
+To test my assumption I navigate to that page.
+It looks like it is working,
+but I see that it has connected to the "Canvas Test" network,
+_not_ my own local node.
+
+I don't know yet if "Canvas Test" is a real network,
+or a simulated test environment.
+
+The tutorial instructions say it will connect to the local node by default,
+but it did not.
+I don't know if this is because it automatically fell back to "Canvas Test"
+after failing to connect to the local node,
+but this could be an easy point of confusion for a less savvy user.
+
+Anyway, the error I get when switching to the "Local Node" says
+
+> You are not connected to a node.
+> Ensure that your node is running and that your Websocket endpoint is reachable.
+
+Even as it indicates an error there is a green circle next to "Local Node",
+which would seem to indicate things are operating correctly,
+though they are not.
+
+TODO: insert pic
+
+So I'm going to reestablish my ssh connection,
+with the same tunnel settings I used when I was testing substrate,
+and that will probably make the canvas-ui properly connect to my canvas node.
+
+I reconnect my ssh tunnel with the same forwarding I used earlier with substrate:
+
+```
+ssh -A <my-server> -L localhost:8000:localhost:8000 -L localhost:9615:localhost:9615 -L localhost:9944:localhost:9944
+```
+
+Port 9944 is the port that matters here.
+That's the RPC port the UI uses to connect to the substrate node.
+Port 8000 is the port we previously used for the substrate-front-end-template,
+and I don't actually need it right now,
+since I am not running canvas-ui on my own.
+Port 9615 is the metrics port,
+which I am also not going to use.
+
+But this I think is the set of ports I need to forward generally as a substrate developer.
+
+
+## Running my own canvas-ui
+
+I don't like the idea of relying on the hosted canvas-ui frontend while I'm hacking.
+Can I run it myself?
+Let's try.
+
+I'm assuming it's going to a lot like running `substrate-front-end-template`.
+
+The repo is here:
+
+> https://github.com/paritytech/canvas-ui
+
+No docs for it,
+but I'm guessing we can follow the `substrate-front-end-template` docs:
+
+> https://github.com/substrate-developer-hub/substrate-front-end-template
+
+I clone `canvas-ui`
+
+```
+git clone https://github.com/paritytech/canvas-ui.git
+```
+
+I run `yarn install`.
+
+The output is very different than it was for the `substrate-front-end-template`;
+this much be a more complex app.
+After output about a million messages like
+
+> YN0013: │ yargs-parser@npm:20.2.4 can't be found in the cache and will be fetched from the remote registry
+
+The output completely stops.
+`htop` says that `node` is doing stuff.
+After 10 or 20 seconds the output resumes.
+The whole build takes less than 4 minutes.
+
+I run `yarn start`.
+
+This server says it is listening on port 3001,
+so I adjust my SSH tunnel accordingly and navigate
+to http://localhost:3001
+and it all seems to work.
+
+The canvas-ui app has a several-step intro on first-connect,
+but while I've been getting things set up I skipped through it without reading.
+Now I don't know how to get back to it.
+
+The whole experience appears very polished though.
+
+Cool.
+I'm in control of all my tools now.
+Time to upload and run a contract.
+
