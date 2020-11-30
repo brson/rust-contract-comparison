@@ -70,12 +70,13 @@ All three posts are up right now.
   - Interlude: What the ink macros actually emit
   - Running a canvas dev node
   - Running my own canvas-ui
-  - Uploading a contract to a canvos devnet
+  - Uploading a contract to a canvas devnet
   - Executing the contract in the canvas-ui
   - The contract bundle
   - Wiping the dev chain
   - Aside: canvas-ui gets out of sync with the on-chain state
-  - Deploying from the command line
+  - (Failing to) deploy from the command line
+  - Inconclusion
 
 
 ## About Parity, Polkadot, Substrate, and Ink
@@ -443,7 +444,74 @@ The [readme for `substrate-node-template`][rsnt] is informative.
 
 [rsnt]: https://github.com/substrate-developer-hub/substrate-node-template
 
-TODO
+From a very naive guess,
+it looks like a simple substrate node is divided into two parts:
+
+- [The "node"][sn] - This is the instance of substrate that is compiled to machine
+  code, and should be substantially the same for any instance of substrate.
+- [The "runtime"][sr] - This is the thing that makes your substrate _your substrate_.
+  It is typically compiled to wasm and is run by the substrate node. It defines
+  the crucial state transition function that characterizes your blockchain.
+
+There's also a ["pallets template"][spt] that defines some mysterious macro magic,
+and is imported by the runtime. Best to ignore that for now I think.
+
+[sn]: https://github.com/substrate-developer-hub/substrate-node-template/tree/master/node
+[sr]: https://github.com/substrate-developer-hub/substrate-node-template/tree/master/runtime
+[spt]: https://github.com/substrate-developer-hub/substrate-node-template/blob/master/pallets/template/src/lib.rs
+
+None of this code is simple - it's all a bit panic inducing,
+but I'm sure with enough time I could more-or-less understand it.
+
+Building a custom substrate runtime is complex enough that [it requires a macro][rtm].
+A big macro.
+
+And look at this syntax:
+
+```rust
+construct_runtime!(
+	pub enum Runtime where
+		Block = Block,
+		NodeBlock = opaque::Block,
+		UncheckedExtrinsic = UncheckedExtrinsic
+	{
+		System: frame_system::{Module, Call, Config, Storage, Event<T>},
+		RandomnessCollectiveFlip: pallet_randomness_collective_flip::{Module, Call, Storage},
+		Timestamp: pallet_timestamp::{Module, Call, Storage, Inherent},
+		Aura: pallet_aura::{Module, Config<T>, Inherent},
+		Grandpa: pallet_grandpa::{Module, Call, Storage, Config, Event},
+		Balances: pallet_balances::{Module, Call, Storage, Config<T>, Event<T>},
+		TransactionPayment: pallet_transaction_payment::{Module, Storage},
+		Sudo: pallet_sudo::{Module, Call, Config<T>, Storage, Event<T>},
+		// Include the custom logic from the template pallet in the runtime.
+		TemplateModule: pallet_template::{Module, Call, Storage, Event<T>},
+	}
+);
+```
+
+I kind of can't even guess what this might expad to,
+even though the syntax begins with "pub enum Runtime ...".
+This all turns into a Rust enum? Really?
+
+Much of the rest of the runtime file is dedicated to defining
+assocated types on `Runtime` for specific pallets, like
+
+```
+impl pallet_transaction_payment::Trait for Runtime {
+	type Currency = Balances;
+	type OnTransactionPayment = ();
+	type TransactionByteFee = TransactionByteFee;
+	type WeightToFee = IdentityFee<Balance>;
+	type FeeMultiplierUpdate = ();
+}
+```
+
+[rtm]: https://github.com/substrate-developer-hub/substrate-node-template/blob/master/runtime/src/lib.rs#L270.
+
+I'm sure there is tons of inherent complexity in building even a simple blockchain,
+and substrate is not a simple blockchain,
+it's a complex toolkit for building complex blockchains.
+And it looks like it.
 
 
 ## The build fails
@@ -1990,8 +2058,18 @@ The deployment fails with
 For now I just click the "forget" buttons in the UI
 to make the UI forget about them.
 
+Later,
+coming back to the tutorial,
+I note this is [mentioned specifically][oldc]
 
-## Deploying from the command line
+> The Polkadot UI uses its own local storage to track the contracts that you have deployed. This means that if you deploy a contract using the UI, and then purge your Canvas node, you will still see the old contracts in the UI even though they do not exist on-chain!
+>
+> You can simply remove any old artifacts from the UI or reset your local storage. So remember, when you start a new chain with the --tmp flag or use the purge-chain subcommand, you will need to re-deploy any contracts and re-do any steps that you may have done before on your node.
+
+[oldc]: https://substrate.dev/substrate-contracts-workshop/#/0/troubleshooting?id=old-contracts-in-local-storage
+
+
+## (Failing to) deploy from the command line
 
 I ask for `--help` for both the `deploy` and `instantiate` subcommands:
 
@@ -2045,3 +2123,67 @@ nor the password for the secret key.
 I do know that my `--dev` chain created some accounts for me.
 I look in the `keystore` directory of the temporary chain.
 There's nothing there.
+
+I imagine there's a substrate CLI client that can communicate with my
+canvas chain over RPC,
+and that may be able to help me figure out what my "secret key URI"
+and "secret key password" are,
+but I can't find such a tool by googling.
+
+I ask in the "Smart Contracts and Parity Ink!" channel:
+
+> I am trying to deploy and instantiate a contract using a custom-built
+  cargo-contract with the extrinsics feature. The 'deploy' and 'instantiate'
+  commands require a "secret key uri" and "secret key password" that I don't
+  know how to find for my canvas devnet. Can somebody help me understand what
+  these are and how to obtain them?
+
+TODO
+
+Anyway,
+I give up on this.
+It seems like for now the way to deploy a contract is to do it through the web UI.
+
+The readme did warn me.
+I have noone to blame but myself for my failure.
+
+
+## Inconclusion
+
+I have been working through this for over a week.
+Obviously, most of why it's taken my so long is that I have written down
+every thing I've done.
+
+But I'm tired and need to move on to other projects.
+
+There's a lot more to learn about writing smart contracts for Substrate
+and I'll come back eventually,
+and probably blog about that too.
+
+I'm only a 3rd a way through the "Substrate Contracts Workshop" tutorial:
+literally only completed the "Getting Started" section;
+haven't even begun the ["Basics"][bscs].
+
+[bscs]: https://substrate.dev/substrate-contracts-workshop/#/1/introduction
+
+So here's my impression of Substrate and Ink:
+
+It seems like a super powerful system,
+filled with potential.
+Just seeing all the building blocks that I _could_ use
+charges up my imagination.
+
+I also strongly suspect that all this flexibility
+is going to become harder and harder to maintain
+and understand over time,
+as more substrate chains,
+with new configurations,
+come into existence.
+
+I don't envy the hard engineering the Parity team is no doubt in for.
+
+There are a lot of toys here to play with,
+but also a lot of depth to comprehed.
+
+I'm looking forward to doing more with this in the future.
+
