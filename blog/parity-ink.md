@@ -2130,7 +2130,7 @@ and that may be able to help me figure out what my "secret key URI"
 and "secret key password" are,
 but I can't find such a tool by googling.
 
-I ask in the "Smart Contracts and Parity Ink!" channel:
+I ask in the "Smart Contracts and Parity Ink!" Matrix channel (`#ink:matrix.parity.io`):
 
 > I am trying to deploy and instantiate a contract using a custom-built
   cargo-contract with the extrinsics feature. The 'deploy' and 'instantiate'
@@ -2138,7 +2138,77 @@ I ask in the "Smart Contracts and Parity Ink!" channel:
   know how to find for my canvas devnet. Can somebody help me understand what
   these are and how to obtain them?
 
-TODO
+@danforbes replies to me:
+
+> You probably just need to the key for some account with enough funds to deploy and instantiate the contract...I don't think the key is specific to the node in any way
+> If you're running the Canvas node in dev mode, these are the accounts that are pre-funded https://github.com/paritytech/canvas-node/blob/master/node/src/chain_spec.rs#L76
+>
+> People typically use Alice...her information is here https://substrate.dev/docs/en/knowledgebase/integrate/subkey#well-known-keys I guess you'd just leave the password blank
+>
+> So the secret key URI will be `bottom drive obey lake curtain smoke basket hold race lonely fit walk//Alice` I think
+
+Great leads, [@danforbes].
+
+[@danforbes]: https://github.com/DanForbes
+
+From here I learn about the `subkey` command, which seems useful, and I install it according to the docs from the Substrate Developer Hub:
+
+```
+cargo install --force subkey --git https://github.com/paritytech/substrate --version 2.0.0
+```
+
+I can run `subkey` for the built-in `Alice` account:
+
+```
+subkey inspect //Alice
+Secret Key URI `//Alice` is account:
+  Secret seed:      0xe5be9a5092b81bca64be81d212e7f2f9eba183bb7a90954f7b76361f6edb5c0a
+  Public key (hex): 0xd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d
+  Account ID:       0xd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d
+  SS58 Address:     5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY
+```
+
+As far as I can tell this is not doing any RPC communication with my chain,
+just manipulating keys.
+I note that the "SS58 address" corresponds to the mostly-elided address displayed in `canvas-ui` for Alice.
+
+Let's see if I can deploy a contract.
+I first try to deploy the "flipper.contract" file,
+but expect it won't work, since the `--help` for `cargo contract deploy` mentions wasm files:
+
+```
+$ cargo contract deploy --suri //Alice target/flipper.contract
+ERROR: Scale codec error: Error decoding field RuntimeMetadataPrefixed.1
+
+Caused by:
+    Error decoding field RuntimeMetadataPrefixed.1
+```
+
+Yep. Nope.
+
+Let's try deploying the wasm file instead.
+
+```
+$ cargo contract deploy --suri //Alice target/flipper.wasm
+ERROR: Scale codec error: Error decoding field RuntimeMetadataPrefixed.1
+
+Caused by:
+    Error decoding field RuntimeMetadataPrefixed.1
+```
+
+Nope.
+
+Let's try deploying the `metadata.json` file instead.
+
+```
+$ cargo contract deploy --suri //Alice target/metadata.json
+ERROR: Scale codec error: Error decoding field RuntimeMetadataPrefixed.1
+
+Caused by:
+    Error decoding field RuntimeMetadataPrefixed.1
+```
+
+Welp, that's all the files I've got!
 
 Anyway,
 I give up on this.
