@@ -30,7 +30,7 @@ we've implemented before in solidity, near, and ink, [the big announcement][tba]
 This is a simple program that lets the caller bid to set a singleton string message.
 
 
-## Starting be doing some actual research!
+## Starting by doing some actual research!
 
 Myself,
 when I start a project,
