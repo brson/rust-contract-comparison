@@ -15,7 +15,8 @@ the full node does not appear to be open source yet.
 I generally join any technical chat for Rust blockchain projects I follow.
 I peek into [DFINITY's telegram][dt],
 via the link on their website.
-It's a typical non-technical blockchain chat.
+It's a typical non-technical blockchain chat,
+filled with speculators.
 I leave.
 
 [dt]: https://t.me/dfinity/
