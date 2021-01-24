@@ -71,12 +71,11 @@ A few that stand out to me though:
 
 - The memory space of a wasm cannister is saved and restored every execution!
   This should makes it behave as if it were a long-running process,
-  even though each invocation may happen long 
-  This suggests that all persistent state doesn't have to be written to special storage types,
-  or maybe none does.
-  It also suggests some complex and perhaps inefficient storage requirements.
-  No merkle trees and light nodes at all maybe?
-  I don't know enough about blockchain storage tech to guess.
+  even though each invocation may be years apart,
+  and on different nodes.
+  There is apparently no explicit storage.
+  This is pretty compelling,
+  and I am surprised I haven't seen this done before in the smart contract space.
 
 - Full nodes are run by data centers.
   This probably allows it to be fast and store a lot of data,
@@ -86,6 +85,15 @@ A few that stand out to me though:
   It's not clear if full nodes need permission to join the network.
 
 - Still no mention on gas!
+
+I read another post by DFINITY's TODO
+
+TODO
+
+https://medium.com/dfinity/announcing-internet-computer-mainnet-and-a-20-year-roadmap-790e56cbe04a
+
+
+
 
 
 
@@ -101,7 +109,140 @@ not connecting to any testnet.
 
 [ldev]: https://sdk.dfinity.org/docs/quickstart/local-quickstart.html
 
-The 
+The tools are installed via `ssh`,
+which is common and I am fine with:
+
+I run the installation and see:
+
+```
+$ sh -ci "$(curl -fsSL https://sdk.dfinity.org/install.sh)"
+Executing DFINITY SDK install script, commit: 55f1bbedee393411e1ae3a6eaeb449a6dd047c00
+The DFINITY Canister SDK
+Copyright 2021 DFINITY Stiftung. All Rights Reserved.
+The DFINITY Canister SDK (the "Software") is licensed under the Alpha DFINITY
+Canister SDK License Agreement (the "License"). You may not use the Software
+except in compliance with the License. You may obtain a copy of the License at
+    https://sdk.dfinity.org/sdk-license-agreement.txt
+The Software is provided to you AS IS and WITHOUT WARRANTY.
+Do you agree and wish to install the DFINITY Canister SDK [y/N]?
+```
+
+Huh.
+They have a non-standard license.
+I read it.
+
+It doesn't load as text in my browser,
+so it might not in others.
+Here's a gist:
+
+> [https://gist.github.com/brson/7abc2be6f9d8e2daf488512af2a866b7](https://gist.github.com/brson/7abc2be6f9d8e2daf488512af2a866b7)
+
+It's not a free-software license.
+
+It is called the "Alpha DFINITY ..." license,
+so charitably I am assuming this is a temporary license,
+and it will change to open source in the future.
+There terms in it are ominous enough that,
+if I weren't here to try it out,
+I would stop immediately.
+
+There's another issue here &mdash;
+this text claims
+
+> "The DFINITY Canister SDK is licensed under the Alpha DFINITY
+  Canister SDK License Agreement"
+
+Also, the source for at least _part_ of the Cannister SDK
+lives [on GitHub][cdk-rs],
+and claims to be Apache-2.0 licensed.
+
+[cdk-rs]: https://github.com/dfinity/cdk-rs
+
+Anyway,
+noted.
+
+Just to make sure it _is_ possible to opt out at this
+stage of the script,
+I hit _enter_,
+which should default to not accepting the license
+(that is what the "y/N" convention means &mdash
+"N" is the default).
+
+Huh.
+
+Instead of accepting _enter_ as "no",
+it said this:
+
+```
+Answer with a yes or no to continue. [y/N]
+```
+
+So I don't get the default-"N".
+
+I hit enter again.
+
+It says the following and exits:
+
+```
+Please accept the license to continue.
+```
+
+So the first time,
+the script ignored the capital-letter-is-default convention,
+while still recognizing I didn't entery "y";
+then the second time it accepted the default.
+
+I can kind of imagine the reasoning here:
+"maybe they didn't _mean_ to not accept the license &dash;
+let's give the user another change";
+but the inconsistent application of the convention here
+is confusing.
+
+Anyway, now I run it again and enter "y".
+
+The install script shows the following and exits:
+
+```
+Version found: 0.6.20
+Creating uninstall script in ~/.cache/dfinity
+uninstall path=/home/ubuntu/.cache/dfinity/uninstall.sh
+Checking for latest release...
+Will install in: /home/ubuntu/bin
+Installed /home/ubuntu/bin/dfx
+```
+
+This looks pretty standard.
+
+It's curious that it first said the version it found,
+then later said it was checking for the latest release.
+Didn't it already do that in order to find the version?
+
+I read the uninstall script and I don't see any
+obviously catastrophic bugs.
+It does mention a `DFX_INSTALLATION_ROOT` environment
+variable that I don't yet know anything about.
+
+I run the uninstall script.
+It works,
+though provides no feedback.
+
+I install again.
+
+`dfx` is not immediatly in my path,
+and neither the install script,
+nor the getting started docs mention
+that it may require extra work to configure `PATH` correctly.
+
+I am on Linux.
+On Aimee's mac though `dfx` is immediately on the path.
+This is because the installer installed directly to
+`/usr/local/bin`.
+This creeps me out a bit
+as I am accustomed to needing to `sudo` to write to that location.
+Maybe it's common on macs to install directly to `/usr/local/bin`
+without permission.
+On Linux, my `dfx` is in `~/bin`.
+
 
 
 
@@ -342,11 +483,28 @@ since we've seen this message multiple times.
 We notice one other problem with the banner:
 it is not colored correctly on this terminal.
 
-
-
+![dfx banner](images/dfx-new-sth.png)
 
 I wonder if `dfx` is one of the tools with code available
 under the GitHub org,
 whether I can look at the code and try to fix some of these issues.
 
-TODO
+The only repo I see that might contain `dfx` is [cdk-rs].
+I clone it and ripgrep for "dfx".
+
+`dfx` is used by some test scripts here,
+but I don't think the code for it is here.
+
+[cdk-rs]: https://github.com/dfinity/cdk-rs
+
+
+
+
+
+
+---
+
+First impressions are important.
+Someone trying to run DFINITY right now
+is seeing a lot of missing polish.
+
