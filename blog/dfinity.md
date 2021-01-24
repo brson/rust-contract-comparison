@@ -77,6 +77,8 @@ A few that stand out to me though:
   There is apparently no explicit storage.
   This is pretty compelling,
   and I am surprised I haven't seen this done before in the smart contract space.
+  It implies though that memory leaks live forever,
+  and so does memory fragmentation.
 
 - Full nodes are run by data centers.
   This probably allows it to be fast and store a lot of data,
@@ -241,12 +243,12 @@ so informing the user about it has to be part of the install
 experience.
 
 I am on Linux.
-On Aimee's mac though `dfx` is immediately on the path.
+On Aimee's Mac though `dfx` is immediately on the path.
 This is because the installer installed directly to
 `/usr/local/bin`.
 This creeps me out a bit
 as I am accustomed to needing to `sudo` to write to that location.
-Maybe it's common on macs to install directly to `/usr/local/bin`
+Maybe it's common on Macs to install directly to `/usr/local/bin`
 without permission.
 On Linux, my `dfx` is in `~/bin`.
 
@@ -265,7 +267,7 @@ she had a confusing experience.
 This is what she saw:
 
 ```
-Aimees-MacBook-Pro:dfinity-project aimeez$ dfx new firsttest
+$ dfx new firsttest
 
 The DFINITY Canister SDK sends anonymous usage data to DFINITY Stiftung by
 default. If you wish to disable this behavior, then please set the environment
@@ -368,6 +370,9 @@ Several things appear to be going wrong here.
   which is accompanied by a unicode spinner,
   and should only appear once while the spinner changes,
   is printed repeatedly.
+
+- The "found 1 high severity vulnerability" message
+  gives the impression that this code is not maintained.
 
 After some careful reading we think we understand everything that happened.
 
@@ -477,7 +482,7 @@ Good.
 It still has a problem with its spinner+status message output,
 where "Installing node dependencies..." is printed repeatedly.
 
-This is on a mac,
+This is on a Mac,
 so perhaps it's a platform-specific bug.
 
 The final thing that is striking about this command
@@ -498,6 +503,9 @@ it is not colored correctly on this terminal.
 I've seen this banner in a 256 color terminal
 and it is properly colored with a gradient.
 
+![dfx banner](images/dfx-correct-black.png)
+
+
 I wonder if `dfx` is one of the tools with code available
 under the GitHub org,
 whether I can look at the code and try to fix some of these issues.
@@ -517,6 +525,235 @@ but I don't think the code for it is here.
 
 The final step in the "local quickstart"
 is to run a "hello world" cannister.
+
+I run `dfx new hello` and see similar output to Aimee's.
+I'm on Linux and I too see the duplicate status messages with spinners:
+
+```
+⠴ Installing node dependencies...
+⠠ Installing node dependencies...
+npm WARN deprecated resolve-url@0.2.1: https://github.com/lydell/resolve-url#deprecated
+⠦ Installing node dependencies...
+⠐ Installing node dependencies...
+npm WARN optional SKIPPING OPTIONAL DEPENDENCY: fsevents@~2.3.1 (node_modules/chokidar/node_modules/fsevents):
+```
+
+Maybe node is printing empty lines here and that's causing the spinner to be interrupted,
+or maybe it's somehow just from node printing a line.
+
+The next step is to run a local devnet.
+
+The instructions here are oddly rudimentary:
+
+> "For example, you can do either of the following if running Terminal on macOS:
+
+> Click Shell, then select New Tab to open a new terminal in your current
+  working directory.
+
+> Click Shell and select New Window, then run cd ~/ic-projects/hello in the new
+  terminal if your hello project is in the ic-projects working folder."
+
+This is how to open a new terminal tab or window,
+but only on macOS.
+And previously the instructions explained how to open a terminal,
+but only on macOS:
+
+> "For example, open Applications, Utilities, then double-click Terminal or press
+  ⌘+spacebar to open Search, then type terminal."
+
+I do appreciate accounting for all questions a newbie might have,
+but this is assuming that the target audience is somebody who wants to program
+for the blockchain,
+but doesn't know how to open a terminal.
+I think most development tutorials will just list "know how to open a termal"
+as a prerequisit,
+and maybe link to outside documentation.
+It's not really the role of the docs here to explain how to open applications on a mac.
+
+There may be some assumption here that Linux users know more about how to operate a terminal
+than macOS users,
+which could lead to the instructions glossing over how to configure `PATH`
+(which just works on macOS),
+while also including very detailed instructions for operating the terminal application.
+Or maybe the assumption is just that more developers are doing their local hacking
+on macOS.
+
+Or maybe the writer was just using a Mac.
+
+Anyway, in this text:
+
+> "Click Shell, then select New Tab to open a new terminal in your current
+  working directory.
+
+> Click Shell and select New Window, then run cd ~/ic-projects/hello in the new
+  terminal if your hello project is in the ic-projects working folder."
+
+This is presenting two alternatives,
+but only one includes instructions for changing directories to the project folder;
+and this is the first mention of `~/ic-projects` &mdash;
+the `dfx new hello` instructions didn't say anything about it.
+
+I don't notice the instruction that `dfx start` needs to be run inside
+the project folder,
+probably because that instruction is buried inside the instruction for how
+operate the macOS terminal.
+
+So I run `dfx start` in the wrong folder:
+
+```
+dfx start
+Cannot find dfx configuration file in the current working directory. Did you forget to create one?
+```
+
+`dfx` speculates that I forgot to create a "dfx configuration file"
+(which I don't know anything about yet, but is appears to be called `dfx.json`).
+Its speculation is incorrect.
+I created it, indirectly;
+I'm just not in the right folder.
+
+Is forgetting to create a `dfx.json` file the most common explanation for this error?
+
+Suggestions from developer tools can be awesome when they are 100% right.
+They can be infuriating when they are wrong.
+
+(I enter a momentary reverie about the times `rustc` or `clippy` have made wrong suggestions).
+
+Here's the comparable `cargo` error:
+
+```
+error: could not find `Cargo.toml` in `/home/ubuntu/dfinity/hello` or any parent directory
+```
+
+I get the filename its looking for,
+and no attempt to guess why it's missing.
+I also get the directory it's looking in,
+which on consideration I think is pretty thoughtful &mdash;
+I have on multiple occassions seen less experienced developers
+take a surprisingly long time after these types of errors to check what directory
+they are actually in,
+and this puts that information right in front of them.
+
+I run `dfx start` in the correct folder:
+
+```
+$ dfx start
+Jan 24 18:15:14.129 INFO ic-starter. Configuration: ValidatedConfig { replica_path: Some("/home/ubuntu/.cache/dfinity/versions/0.6.20/replica"), replica_version: "0.1.0", log_level: Warning, subnet_id: fscpm-uiaaa-aaaaa-aaaap-yai, cargo_bin: "cargo", cargo_opts: "", state_dir: "/home/ubuntu/dfinity/hello/.dfx/state/replicated_state", http_listen_addr: V4(127.0.0.1:0), http_port_file: Some("/home/ubuntu/dfinity/hello/.dfx/replica-configuration/replica-1.port"), metrics_addr: None, hypervisor_create_funds_whitelist: "*", artifact_pool_dir: "/home/ubuntu/dfinity/hello/.dfx/state/replicated_state/node-100/ic_consensus_pool", crypto_root: "/home/ubuntu/dfinity/hello/.dfx/state/replicated_state/node-100/crypto", state_manager_root: "/home/ubuntu/dfinity/hello/.dfx/state/replicated_state/node-100/state", registry_file: "/home/ubuntu/dfinity/hello/.dfx/state/replicated_state/registry.proto", bootstrap_registry: None, state_dir_holder: None }, Application: starter
+Jan 24 18:15:14.129 INFO Initialize replica configuration "/home/ubuntu/dfinity/hello/.dfx/state/replicated_state/ic.json5", Application: starter
+Jan 24 18:15:14.536 ERRO s:fscpm-uiaaa-aaaaa-aaaap-yai/n:eq5dc-p6wlh-rvwea-wfxrq-fqewv-n4q4v-k22qr-awprk-mcqa5-vjyrh-aqe/ic_messaging/xnet_endpoint No XNet configuration for node eq5dc-p6wlh-rvwea-wfxrq-fqewv-n4q4v-k22qr-awprk-mcqa5-vjyrh-aqe. This is an error in production, but may be ignored in single-subnet test deployments.
+Jan 24 18:15:15.537 WARN s:fscpm-uiaaa-aaaaa-aaaap-yai/n:eq5dc-p6wlh-rvwea-wfxrq-fqewv-n4q4v-k22qr-awprk-mcqa5-vjyrh-aqe/ic_http_handler/ic_http_handler NNS subnet not found in network topology. Skipping fetching the delegation.
+Starting webserver on port 42067 for replica at "http://localhost:42067"
+binding to: V4(127.0.0.1:8000)
+replica(s): http://localhost:42067/
+Jan 24 18:17:52.946 WARN s:fscpm-uiaaa-aaaaa-aaaap-yai/n:eq5dc-p6wlh-rvwea-wfxrq-fqewv-n4q4v-k22qr-awprk-mcqa5-vjyrh-aqe/ic_state_layout/utils StateManager runs on a filesystem not supporting reflinks (attempted to reflink /home/ubuntu/dfinity/hello/.dfx/state/replicated_state/node-100/state/tip/subnet_queues.pbuf => /home/ubuntu/dfinity/hello/.dfx/state/replicated_state/node-100/state/fs_tmp/scratchpad_0000000000000064/subnet_queues.pbuf), running big canisters can be very slow
+```
+
+Oof, this is a mouthful.
+
+Here's what it looks like wrapped in my terminal:
+
+```
+$ dfx start
+Jan 24 18:15:14.129 INFO ic-starter. Configuration: ValidatedConfig { replica_path: Some("/home/ubuntu/.cache/dfinity/versions/0.6.20/
+replica"), replica_version: "0.1.0", log_level: Warning, subnet_id: fscpm-uiaaa-aaaaa-aaaap-yai, cargo_bin: "cargo", cargo_opts: "", s
+tate_dir: "/home/ubuntu/dfinity/hello/.dfx/state/replicated_state", http_listen_addr: V4(127.0.0.1:0), http_port_file: Some("/home/ubu
+ntu/dfinity/hello/.dfx/replica-configuration/replica-1.port"), metrics_addr: None, hypervisor_create_funds_whitelist: "*", artifact_po
+ol_dir: "/home/ubuntu/dfinity/hello/.dfx/state/replicated_state/node-100/ic_consensus_pool", crypto_root: "/home/ubuntu/dfinity/hello/
+.dfx/state/replicated_state/node-100/crypto", state_manager_root: "/home/ubuntu/dfinity/hello/.dfx/state/replicated_state/node-100/sta
+te", registry_file: "/home/ubuntu/dfinity/hello/.dfx/state/replicated_state/registry.proto", bootstrap_registry: None, state_dir_holde
+r: None }, Application: starter
+Jan 24 18:15:14.129 INFO Initialize replica configuration "/home/ubuntu/dfinity/hello/.dfx/state/replicated_state/ic.json5", Applicati
+on: starter
+Jan 24 18:15:14.536 ERRO s:fscpm-uiaaa-aaaaa-aaaap-yai/n:eq5dc-p6wlh-rvwea-wfxrq-fqewv-n4q4v-k22qr-awprk-mcqa5-vjyrh-aqe/ic_messaging/
+xnet_endpoint No XNet configuration for node eq5dc-p6wlh-rvwea-wfxrq-fqewv-n4q4v-k22qr-awprk-mcqa5-vjyrh-aqe. This is an error in prod
+uction, but may be ignored in single-subnet test deployments.
+Jan 24 18:15:15.537 WARN s:fscpm-uiaaa-aaaaa-aaaap-yai/n:eq5dc-p6wlh-rvwea-wfxrq-fqewv-n4q4v-k22qr-awprk-mcqa5-vjyrh-aqe/ic_http_handl
+er/ic_http_handler NNS subnet not found in network topology. Skipping fetching the delegation.
+Starting webserver on port 42067 for replica at "http://localhost:42067"
+binding to: V4(127.0.0.1:8000)
+replica(s): http://localhost:42067/
+Jan 24 18:17:52.946 WARN s:fscpm-uiaaa-aaaaa-aaaap-yai/n:eq5dc-p6wlh-rvwea-wfxrq-fqewv-n4q4v-k22qr-awprk-mcqa5-vjyrh-aqe/ic_state_layo
+ut/utils StateManager runs on a filesystem not supporting reflinks (attempted to reflink /home/ubuntu/dfinity/hello/.dfx/state/replica
+ted_state/node-100/state/tip/subnet_queues.pbuf => /home/ubuntu/dfinity/hello/.dfx/state/replicated_state/node-100/state/fs_tmp/scratc
+hpad_0000000000000064/subnet_queues.pbuf), running big canisters can be very slow
+```
+
+Frankly, it looks like junk:
+debug printing,
+huge wrapped lines,
+extremely long identifiers.
+It's unscannable spew.
+
+Some of the lines here are not log lines,
+but are just output straight to the console,
+and have a different format.
+
+There's an error here that explains that it is actually not an error.
+
+Here's what a substrate node looks like when it launches:
+
+```
+2020-11-25 00:05:57  Running in --dev mode, RPC CORS has been disabled.
+2020-11-25 00:05:57  Canvas Node
+2020-11-25 00:05:57  ✌️  version 0.1.0-e189090-x86_64-linux-gnu
+2020-11-25 00:05:57  ❤️  by Canvas, 2020-2020
+2020-11-25 00:05:57  📋 Chain specification: Development
+2020-11-25 00:05:57  🏷 Node name: somber-thread-7554
+2020-11-25 00:05:57  👤 Role: AUTHORITY
+2020-11-25 00:05:57  💾 Database: RocksDb at /tmp/substrateBjvYLz/chains/dev/db
+2020-11-25 00:05:57  ⛓  Native runtime: canvas-8 (canvas-0.tx1.au1)
+2020-11-25 00:05:57  🔨 Initializing Genesis block/state (state: 0x76e4…0f61, header-hash: 0x70f1…6167)
+2020-11-25 00:05:57  👴 Loading GRANDPA authority set from genesis on what appears to be first startup.
+2020-11-25 00:05:57  ⏱  Loaded block-time = 6000 milliseconds from genesis on first-launch
+2020-11-25 00:05:57  Using default protocol ID "sup" because none is configured in the chain specs
+2020-11-25 00:05:57  🏷 Local node identity is: 12D3KooWDdvLqPW8gzaPBWgYjd6Q2yC2abk6713QykMfVAGHVtfr
+2020-11-25 00:05:57  📦 Highest known block at #0
+2020-11-25 00:05:57  〽️ Prometheus server started at 127.0.0.1:9615
+2020-11-25 00:05:57  Listening for new connections on 127.0.0.1:9944.
+2020-11-25 00:06:00  🙌 Starting consensus session on top of parent 0x70f1a0488a744075c07ca30d890d981697ffff0c2ef024e9753b9152afd46167
+2020-11-25 00:06:00  🎁 Prepared block for proposing at 1 [hash: 0x50ff56ca14d680e03c3c1a2a231f27a1c4ffee2c52bba5a8459112f5a375c2ff; p
+arent_hash: 0x70f1…6167; extrinsics (1): [0x115d…2969]]
+2020-11-25 00:06:00  🔖 Pre-sealed block for proposal at 1. Hash now 0x0aee39eb04a2283232d41ca12ea1418f3215378455e2ea4e0e9312ec9455307
+2, previously 0x50ff56ca14d680e03c3c1a2a231f27a1c4ffee2c52bba5a8459112f5a375c2ff.
+2020-11-25 00:06:00  ✨ Imported #1 (0x0aee…3072)
+```
+
+This is pretty easy to scan for useful information.
+On the console the timestamp is colored in such a way that,
+even with some lines wrapping,
+each log entry is easy to identify.
+
+When a server starts logging,
+as a newcomer the two thinngs usually I want to know are:
+
+- Is it operating correctly?
+- What ports is it listening on?
+
+In my own software I generally try to make those the final pieces of information printed
+before the server starts idling.
+
+`dfx start` prints these three non-logging lines
+
+```
+$ dfx start
+...
+Starting webserver on port 42067 for replica at "http://localhost:42067"
+binding to: V4(127.0.0.1:8000)
+replica(s): http://localhost:42067/
+...
+```
+
+And it's not all that clear.
+There are two addresses involved here,
+printed in three different ways.
+Port 8000 is bound for something, but what?
+We're told that a webserver for "replicas" is listening on port 42067,
+twice,
+with the port mentioned three times.
+The first time we're told what's about to happen ("starting");
+the last time it's implied that the port is open and listening.
+The port 8000 message again says what's about to happen ("binding to"),
+but not that that port is open and listening.
+
 
 
 
