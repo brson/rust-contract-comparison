@@ -680,7 +680,9 @@ hpad_0000000000000064/subnet_queues.pbuf), running big canisters can be very slo
 Frankly, it looks like junk:
 debug printing,
 huge wrapped lines,
-extremely long identifiers.
+extremely long identifiers,
+inconsistent formatting,
+inconsistent language.
 It's unscannable spew.
 
 Some of the lines here are not log lines,
@@ -731,29 +733,124 @@ as a newcomer the two thinngs usually I want to know are:
 In my own software I generally try to make those the final pieces of information printed
 before the server starts idling.
 
-`dfx start` prints these three non-logging lines
+`dfx start` ends like this
 
 ```
 $ dfx start
 ...
+Jan 24 18:15:15.537 WARN s:fscpm-uiaaa-aaaaa-aaaap-yai/n:eq5dc-p6wlh-rvwea-wfxrq-fqewv-n4q4v-k22qr-awprk-mcqa5-vjyrh-aqe/ic_http_handl
+er/ic_http_handler NNS subnet not found in network topology. Skipping fetching the delegation.
 Starting webserver on port 42067 for replica at "http://localhost:42067"
 binding to: V4(127.0.0.1:8000)
 replica(s): http://localhost:42067/
+Jan 24 18:17:52.946 WARN s:fscpm-uiaaa-aaaaa-aaaap-yai/n:eq5dc-p6wlh-rvwea-wfxrq-fqewv-n4q4v-k22qr-awprk-mcqa5-vjyrh-aqe/ic_state_layo
+ut/utils StateManager runs on a filesystem not supporting reflinks (attempted to reflink /home/ubuntu/dfinity/hello/.dfx/state/replica
+ted_state/node-100/state/tip/subnet_queues.pbuf => /home/ubuntu/dfinity/hello/.dfx/state/replicated_state/node-100/state/fs_tmp/scratc
+hpad_0000000000000064/subnet_queues.pbuf), running big canisters can be very slow
 ...
 ```
 
 And it's not all that clear.
-There are two addresses involved here,
+Because there are two different output formats (log lines and regular printlns),
+the three printlns,
+which are probably the information the devs want me to see most,
+are visually obscured in the line-wrapped log lines.
+In the important printlns,
+there are two addresses involved,
 printed in three different ways.
 Port 8000 is bound for something, but what?
 We're told that a webserver for "replicas" is listening on port 42067,
 twice,
 with the port mentioned three times.
 The first time we're told what's about to happen ("starting");
-the last time it's implied that the port is open and listening.
+the last time it's implied that the port has successfully opened and is listening.
 The port 8000 message again says what's about to happen ("binding to"),
-but not that that port is open and listening.
+but not that that port has successfully open and is listening.
 
+
+
+## Aimee resumes her tutorial
+
+
+Aimee, a day after deploying "hello",
+comes back to the tutorial,
+restarts here node with `dfx start`.
+She realizes she no longer knows the ID
+of the cannister she deployed yesterday.
+This is information shee needs to open it in the web UI
+at
+
+```
+http://127.0.0.1:8000/?canisterId=<...>
+```
+
+She finds that information in her terminal backscroll.
+Probably we could have figured out how to query that information
+otherwise.
+
+Aimee finds this command hard to read:
+
+```
+dfx cannister call hello greet everyone
+```
+
+It makes sense to me,
+knowing how CLI subcommands work,
+and realizing "hello" is a contract,
+"greet" is a method,
+and "everyone" is an argument to that method.
+
+Although I like how elegant this unfurling of sub-commands within sub-commands looks,
+I do recognize that the lack of argument names means that the command itself contains
+no meta-information about what "hello", "greet", and "everyone" are.
+
+She finds it not clear where the CLI sub-commands end and there arguments begin,
+expecting _some_ `--foo`-style arguments somewhere.
+
+I like this command though :)
+
+She takes the opportunity to explore the feedback she gets from the CLI if these
+arguments are progresively added from `dfx cannister call`:
+
+```
+$ dfx canister call hello greet everyone
+("Hello, everyone!")
+
+$ dfx canister call 
+error: The following required arguments were not provided:
+    <canister-name>
+    <method-name>
+
+USAGE:
+    dfx canister call [FLAGS] [OPTIONS] <canister-name> <method-name> [argument]
+
+For more information try --help
+
+$ dfx canister call hello
+error: The following required arguments were not provided:
+    <method-name>
+
+USAGE:
+    dfx canister call [FLAGS] [OPTIONS] <canister-name> <method-name> [argument]
+
+For more information try --help
+
+$ dfx canister call hello memememe
+The Replica returned an error: code 3, message: "Canister rwlgt-iiaaa-aaaaa-aaaaa-cai has no update method 'memememe'"
+
+$ dfx canister call hello greet
+Invalid data: Unable to serialize Candid values: wrong number of argument values
+
+$ dfx canister call hello greet memeememememme
+("Hello, memeememememme!")
+```
+
+This is pretty helpful.
+It is most helpful while the CLI is parsing known arguments.
+When she accidentally forgets the "greet" method name,
+the error does provide enough info to figure out what went wrong.
+The errors that don't come from the command-line parser could be more consistent and helpful,
+but I won't make specific observations here.
 
 
 
@@ -761,6 +858,7 @@ but not that that port is open and listening.
 
 
 ## TODO
+
 
 First impressions are important.
 Someone trying to run DFINITY right now
