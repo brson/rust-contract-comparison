@@ -494,6 +494,9 @@ it is not colored correctly on this terminal.
 
 ![dfx banner](images/dfx-new-sth.png)
 
+I've seen this banner in a 256 color terminal
+and it is properly colored with a gradient.
+
 I wonder if `dfx` is one of the tools with code available
 under the GitHub org,
 whether I can look at the code and try to fix some of these issues.
