@@ -516,7 +516,6 @@ but I don't think the code for it is here.
 ## Running a test cannister
 
 The final step in the "local quickstart"
-(yes I am not past the first page of instructions yet)
 is to run a "hello world" cannister.
 
 
