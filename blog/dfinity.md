@@ -22,7 +22,7 @@ I leave.
 [dt]: https://t.me/dfinity/
 
 
-## What we're gonna do
+## What we're going to do
 
 For this first look we're going to install the tools and try to implement a contract
 we've implemented before in solidity, near, and ink, [the big announcement][tba].
