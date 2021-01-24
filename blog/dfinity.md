@@ -60,3 +60,30 @@ which so far appears to be a good fit.
 The code I've seen in the video reads pretty easily.
 
 [Motoko]: https://sdk.dfinity.org/docs/language-guide/motoko.html
+
+I read a blog post by DFINITY's Johan Granström:
+[A Closer Look at Software Canisters, an Evolution of Smart Contracts].
+
+[canblog]: https://medium.com/dfinity/software-canisters-an-evolution-of-smart-contracts-internet-computer-f1f92f1bfffb
+
+Many of the capabilities described here sound similar to other smart contract platforms.
+A few that stand out to me though:
+
+- The memory space of a wasm cannister is saved and restored every execution!
+  This should makes it behave as if it were a long-running process,
+  even though each invocation may happen long 
+  This suggests that all persistent state doesn't have to be written to special storage types,
+  or maybe none does.
+  It also suggests some complex and perhaps inefficient storage requirements.
+  No merkle trees and light nodes at all maybe?
+  I don't know enough about blockchain storage tech to guess.
+
+- Full nodes are run by data centers.
+  This probably allows it to be fast and store a lot of data,
+  but reduces the decentralization.
+  This is probably the fate of all smart contract blockchains though &mdash;
+  Ethereum is already too big for most people to run on their own.
+  It's not clear if full nodes need permission to join the network.
+
+- Still no mention on gas!
+
