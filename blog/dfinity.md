@@ -36,8 +36,8 @@ Myself,
 when I start a project,
 I usually just jump in,
 without informing myself of anything at all really.
-This time though,
-we have watched [an entire YouTube playlist][ytpl]
+Aimee though likes to read,
+and this time we have watched [an entire YouTube playlist][ytpl]
 about "building on the Internet Computer".
 
 [ytpl]: https://www.youtube.com/playlist?list=PLuhDt1vhGcrejCmYeB1uqgl9Y3f6MCyFp
@@ -228,10 +228,16 @@ though provides no feedback.
 
 I install again.
 
-`dfx` is not immediatly in my path,
-and neither the install script,
-nor the getting started docs mention
-that it may require extra work to configure `PATH` correctly.
+`dfx` is not immediatly in my `PATH`.
+The install script or the docs could do a bit better
+in guiding the user here.
+I know from experience that this first
+step of getting `PATH` set correctly is a very common
+blocker for newbies.
+Unfortunately there are no perfect technical solutions
+to setting up `PATH` across all platforms,
+so informing the user about it has to be part of the install
+experience.
 
 I am on Linux.
 On Aimee's mac though `dfx` is immediately on the path.
@@ -243,6 +249,9 @@ Maybe it's common on macs to install directly to `/usr/local/bin`
 without permission.
 On Linux, my `dfx` is in `~/bin`.
 
+The next step is to install a VSCode plugin.
+I don't use VSCode,
+so I skip it.
 
 
 
@@ -500,9 +509,18 @@ but I don't think the code for it is here.
 
 
 
+## Running a test cannister
+
+The final step in the "local quickstart"
+(yes I am not past the first page of instructions yet)
+is to run a "hello world" cannister.
 
 
----
+
+
+
+
+## TODO
 
 First impressions are important.
 Someone trying to run DFINITY right now
