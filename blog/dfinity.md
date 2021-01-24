@@ -37,6 +37,7 @@ when I start a project,
 I usually just jump in,
 without informing myself of anything at all really.
 Aimee though likes to read,
+and watch,
 and this time we have watched [an entire YouTube playlist][ytpl]
 about "building on the Internet Computer".
 
