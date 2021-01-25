@@ -70,7 +70,7 @@ I read a blog post by DFINITY's Johan Granström:
 Many of the capabilities described here sound similar to other smart contract platforms.
 A few that stand out to me though:
 
-- The memory space of a wasm cannister is saved and restored every execution!
+- The memory space of a wasm canister is saved and restored every execution!
   This should makes it behave as if it were a long-running process,
   even though each invocation may be years apart,
   and on different nodes.
@@ -155,7 +155,7 @@ this text claims
 > "The DFINITY Canister SDK is licensed under the Alpha DFINITY
   Canister SDK License Agreement"
 
-Also, the source for at least _part_ of the Cannister SDK
+Also, the source for at least _part_ of the Canister SDK
 lives [on GitHub][cdk-rs],
 and claims to be Apache-2.0 licensed.
 
@@ -521,10 +521,12 @@ but I don't think the code for it is here.
 
 
 
-## Running a test cannister
 
-The final step in the "local quickstart"
-is to run a "hello world" cannister.
+## Creating my own project
+
+The next quick start step is to [create a project][cap].
+
+[cap]: https://sdk.dfinity.org/docs/quickstart/local-quickstart.html#create-a-new-project
 
 I run `dfx new hello` and see similar output to Aimee's.
 I'm on Linux and I too see the duplicate status messages with spinners:
@@ -541,7 +543,20 @@ npm WARN optional SKIPPING OPTIONAL DEPENDENCY: fsevents@~2.3.1 (node_modules/ch
 Maybe node is printing empty lines here and that's causing the spinner to be interrupted,
 or maybe it's somehow just from node printing a line.
 
-The next step is to run a local devnet.
+Let's look at what `dfx` has created on disk...
+
+TODO
+
+
+
+
+
+## Running a local test node
+
+The next step in the "local quickstart"
+is to [start the local next work][stln].
+
+[stln]: https://sdk.dfinity.org/docs/quickstart/local-quickstart.html#start-the-local-network
 
 The instructions here are oddly rudimentary:
 
@@ -751,8 +766,8 @@ hpad_0000000000000064/subnet_queues.pbuf), running big canisters can be very slo
 ```
 
 And it's not all that clear.
-Because there are two different output formats (log lines and regular printlns),
-the three printlns,
+There are two different output formats (log lines and regular printlns).
+The three printlns,
 which are probably the information the devs want me to see most,
 are visually obscured in the line-wrapped log lines.
 In the important printlns,
@@ -765,7 +780,46 @@ with the port mentioned three times.
 The first time we're told what's about to happen ("starting");
 the last time it's implied that the port has successfully opened and is listening.
 The port 8000 message again says what's about to happen ("binding to"),
-but not that that port has successfully open and is listening.
+but not that that port has successfully opened and is listening.
+
+
+
+
+## Deploying and running the contract
+
+The next step of the quick start
+is to [register, build, and deploy the application][rbdta].
+
+[rbdta]: https://sdk.dfinity.org/docs/quickstart/local-quickstart.html#register-ids
+
+`dfx deploy` builds and deploys the two canisters in the project.
+One of those canisters is `hello_assets`,
+which is the frontend for the web application.
+
+So that's a notable difference from Ethereum-like platforms,
+where the frontend that use a contract just live on the web somehow.
+Here the frontend code lives in the network's own storage,
+and a network node can serve the entire web app.
+
+I notice that there is no Rust in the generated `hello` applicaiton &mdash;
+just an a simple npm package configuration that delegates entirely to webpack,
+the `hello_assets` web application, and a `hello.mo` Motoko script.
+
+I am getting a picture of how the developer experience with this system could end up quite fun,
+with several of the typical rough edges of Ethereum-style application development out of the picture.
+
+The rest of the local quick-start proceeds smoothly.
+
+I run the `greet` method and get the output as expected:
+
+```
+$ dfx canister call hello greet everyone
+("Hello, everyone!")
+```
+
+I load the app in the web browser and it runs.
+
+
 
 
 
@@ -776,7 +830,7 @@ Aimee, a day after deploying "hello",
 comes back to the tutorial,
 restarts here node with `dfx start`.
 She realizes she no longer knows the ID
-of the cannister she deployed yesterday.
+of the canister she deployed yesterday.
 This is information shee needs to open it in the web UI
 at
 
@@ -791,7 +845,7 @@ otherwise.
 Aimee finds this command hard to read:
 
 ```
-dfx cannister call hello greet everyone
+dfx canister call hello greet everyone
 ```
 
 It makes sense to me,
@@ -800,7 +854,9 @@ and realizing "hello" is a contract,
 "greet" is a method,
 and "everyone" is an argument to that method.
 
-Although I like how elegant this unfurling of sub-commands within sub-commands looks,
+Although I think this unfurling of sub-commands within sub-commands,
+from the CLI commands into the contract methods,
+is elegant,
 I do recognize that the lack of argument names means that the command itself contains
 no meta-information about what "hello", "greet", and "everyone" are.
 
@@ -810,12 +866,9 @@ expecting _some_ `--foo`-style arguments somewhere.
 I like this command though :)
 
 She takes the opportunity to explore the feedback she gets from the CLI if these
-arguments are progresively added from `dfx cannister call`:
+arguments are progresively added from `dfx canister call`:
 
 ```
-$ dfx canister call hello greet everyone
-("Hello, everyone!")
-
 $ dfx canister call 
 error: The following required arguments were not provided:
     <canister-name>
@@ -849,8 +902,142 @@ This is pretty helpful.
 It is most helpful while the CLI is parsing known arguments.
 When she accidentally forgets the "greet" method name,
 the error does provide enough info to figure out what went wrong.
-The errors that don't come from the command-line parser could be more consistent and helpful,
-but I won't make specific observations here.
+The errors that don't come from the command-line parser could probably be more consistent and helpful,
+but I don't have specific insights to share.
+
+
+
+
+
+## Aimee tries deploying to the live network
+
+The quick start documentation also includes a page on [network deployment][nwdm].
+
+[nwdm]: https://sdk.dfinity.org/docs/quickstart/network-quickstart.html
+
+Aimee tries to follow these instructions.
+Many of the instructions are the same,
+except they need to specify `--network=ic`,
+or something similar.
+
+Steps 4 and 5 of [register, build, and deploy the application][rbdan]
+confuse her.
+
+[rdban]: https://sdk.dfinity.org/docs/quickstart/network-quickstart.html#net-deploy
+
+In these steps we are told to check the cycle balance of the canister,
+and to call the `greet` method of `hello`,
+with these two commands:
+
+```
+dfx canister --network=ic call <WALLET-CANISTER-ID> cycle_balance
+dfx canister call hello greet everyone
+```
+
+The number of problems we run into attempting to accomplish these two steps
+becomes overwhelming,
+and my notes are filled with digressions.
+
+Firstly,
+we aren't told explicitly what a "wallet canister ID" is,
+but we think it should be easy to guess that it is printed in this line,
+printed by `dfx deploy --network=ic`:
+
+```
+"hello" canister created on network "ic" with canister id: "xibue-hiaaa-aaaaa-qabza-cai"
+```
+
+Unfortunately,
+there just doesn't seem to be a method called `cycle_balance`
+on the canister.
+We try running this command in a bunch of variations,
+local network vs live network,
+cannister id vs cannister name:
+
+```
+dfx canister --network=ic call xibue-hiaaa-aaaaa-qabza-cai cycle_balance
+dfx canister --network=ic call hello cycle_balance
+dfx canister call rwlgt-iiaaa-aaaaa-aaaaa-cai cycle_balance
+dfx canister call hello cycle_balance
+```
+
+All return the same error:
+
+```
+The Replica returned an error: code 3, message: "Canister xibue-hiaaa-aaaaa-qabza-cai has no update method 'cycle_balance'"
+```
+
+riprepping the docs repo yields 3 mentions of "wallet",
+and leads us to think maybe there is another cannister
+that we don't know about that is a special "wallet cannister".
+
+We're lost and keep going.
+
+The second command we are told to execute,
+
+```
+dfx canister call hello greet everyone
+```
+
+This pretty clearly is missing the `--network=ic` argument.
+It doesn't work while we aren't running `dfx start`.
+
+Running it with `--network=ic` produces the same expected output
+as on the local network.
+
+We [submit a pull request to fix the docs][pr].
+
+[pr]: https://github.com/dfinity/docs/pull/289
+
+While we are working through these steps in the instructions,
+we hit this error:
+
+
+```
+$ dfx deploy --network=ic
+Deploying all canisters.
+Creating canisters...
+Creating canister "hello"...
+The replica returned an HTTP Error: Http Error: status 504 Gateway Timeout,
+content type "text/html", content: [60, 104, 116, 109, 108, 62, 13, 10, 60, 104,
+101, 97, 100, 62, 60, 116, 105, 116, 108, 101, 62, 53, 48, 52, 32, 71, 97, 116,
+101, 119, 97, 121, 32, 84, 105, 109, 101, 45, 111, 117, 116, 60, 47, 116, 105,
+116, 108, 101, 62, 60, 47, 104, 101, 97, 100, 62, 13, 10, 60, 98, 111, 100, 121,
+62, 13, 10, 60, 99, 101, 110, 116, 101, 114, 62, 60, 104, 49, 62, 53, 48, 52,
+32, 71, 97, 116, 101, 119, 97, 121, 32, 84, 105, 109, 101, 45, 111, 117, 116,
+60, 47, 104, 49, 62, 60, 47, 99, 101, 110, 116, 101, 114, 62, 13, 10, 60, 104,
+114, 62, 60, 99, 101, 110, 116, 101, 114, 62, 110, 103, 105, 110, 120, 47, 49,
+46, 49, 56, 46, 48, 32, 40, 85, 98, 117, 110, 116, 117, 41, 60, 47, 99, 101,
+110, 116, 101, 114, 62, 13, 10, 60, 47, 98, 111, 100, 121, 62, 13, 10, 60, 47,
+104, 116, 109, 108, 62, 13, 10]
+```
+
+Here,
+the server we're connecting to returned an error,
+with accompanying HTML explaining it,
+and `dfx` has unhelpfully presented the HTML as bytes.
+
+At some point Aimee attempted to call `hello greet`
+by "hello"s canister ID, instead of by name,
+and got this error:
+
+```
+$ dfx canister --network=ic call xibue-hiaaa-aaaaa-qabza-cai greet everyone
+error: parser error
+  ┌─ Candid argument:1:1
+  │
+1 │ everyone
+  │ ^^^^^^^^ Unexpected token
+  │
+  = Expects "("
+
+Invalid argument: Invalid Candid values: Candid parser error: Unrecognized token `Id("everyone")` found at 0:8
+Expected one of "("
+```
+
+This is confusing and meaningless to us.
+
+
 
 
 
