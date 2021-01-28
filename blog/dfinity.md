@@ -70,13 +70,15 @@ I read a blog post by DFINITY's Johan Granström:
 Many of the capabilities described here sound similar to other smart contract platforms.
 A few that stand out to me though:
 
-- The memory space of a wasm cannister is saved and restored every execution!
+- The memory space of a wasm canister is saved and restored every execution!
   This should makes it behave as if it were a long-running process,
   even though each invocation may be years apart,
   and on different nodes.
   There is apparently no explicit storage.
   This is pretty compelling,
   and I am surprised I haven't seen this done before in the smart contract space.
+  It implies though that memory leaks live forever,
+  and so does memory fragmentation.
 
 - Full nodes are run by data centers.
   This probably allows it to be fast and store a lot of data,
@@ -153,7 +155,7 @@ this text claims
 > "The DFINITY Canister SDK is licensed under the Alpha DFINITY
   Canister SDK License Agreement"
 
-Also, the source for at least _part_ of the Cannister SDK
+Also, the source for at least _part_ of the Canister SDK
 lives [on GitHub][cdk-rs],
 and claims to be Apache-2.0 licensed.
 
@@ -241,12 +243,12 @@ so informing the user about it has to be part of the install
 experience.
 
 I am on Linux.
-On Aimee's mac though `dfx` is immediately on the path.
+On Aimee's Mac though `dfx` is immediately on the path.
 This is because the installer installed directly to
 `/usr/local/bin`.
 This creeps me out a bit
 as I am accustomed to needing to `sudo` to write to that location.
-Maybe it's common on macs to install directly to `/usr/local/bin`
+Maybe it's common on Macs to install directly to `/usr/local/bin`
 without permission.
 On Linux, my `dfx` is in `~/bin`.
 
@@ -265,7 +267,7 @@ she had a confusing experience.
 This is what she saw:
 
 ```
-Aimees-MacBook-Pro:dfinity-project aimeez$ dfx new firsttest
+$ dfx new firsttest
 
 The DFINITY Canister SDK sends anonymous usage data to DFINITY Stiftung by
 default. If you wish to disable this behavior, then please set the environment
@@ -368,6 +370,9 @@ Several things appear to be going wrong here.
   which is accompanied by a unicode spinner,
   and should only appear once while the spinner changes,
   is printed repeatedly.
+
+- The "found 1 high severity vulnerability" message
+  gives the impression that this code is not maintained.
 
 After some careful reading we think we understand everything that happened.
 
@@ -477,7 +482,7 @@ Good.
 It still has a problem with its spinner+status message output,
 where "Installing node dependencies..." is printed repeatedly.
 
-This is on a mac,
+This is on a Mac,
 so perhaps it's a platform-specific bug.
 
 The final thing that is striking about this command
@@ -498,6 +503,9 @@ it is not colored correctly on this terminal.
 I've seen this banner in a 256 color terminal
 and it is properly colored with a gradient.
 
+![dfx banner](images/dfx-correct-black.png)
+
+
 I wonder if `dfx` is one of the tools with code available
 under the GitHub org,
 whether I can look at the code and try to fix some of these issues.
@@ -513,11 +521,523 @@ but I don't think the code for it is here.
 
 
 
-## Running a test cannister
 
-The final step in the "local quickstart"
-(yes I am not past the first page of instructions yet)
-is to run a "hello world" cannister.
+## Creating my own project
+
+The next quick start step is to [create a project][cap].
+
+[cap]: https://sdk.dfinity.org/docs/quickstart/local-quickstart.html#create-a-new-project
+
+I run `dfx new hello` and see similar output to Aimee's.
+I'm on Linux and I too see the duplicate status messages with spinners:
+
+```
+⠴ Installing node dependencies...
+⠠ Installing node dependencies...
+npm WARN deprecated resolve-url@0.2.1: https://github.com/lydell/resolve-url#deprecated
+⠦ Installing node dependencies...
+⠐ Installing node dependencies...
+npm WARN optional SKIPPING OPTIONAL DEPENDENCY: fsevents@~2.3.1 (node_modules/chokidar/node_modules/fsevents):
+```
+
+Maybe node is printing empty lines here and that's causing the spinner to be interrupted,
+or maybe it's somehow just from node printing a line.
+
+Let's look at what `dfx` has created on disk...
+
+TODO
+
+
+
+
+
+## Running a local test node
+
+The next step in the "local quickstart"
+is to [start the local next work][stln].
+
+[stln]: https://sdk.dfinity.org/docs/quickstart/local-quickstart.html#start-the-local-network
+
+The instructions here are oddly rudimentary:
+
+> "For example, you can do either of the following if running Terminal on macOS:
+
+> Click Shell, then select New Tab to open a new terminal in your current
+  working directory.
+
+> Click Shell and select New Window, then run cd ~/ic-projects/hello in the new
+  terminal if your hello project is in the ic-projects working folder."
+
+This is how to open a new terminal tab or window,
+but only on macOS.
+And previously the instructions explained how to open a terminal,
+but only on macOS:
+
+> "For example, open Applications, Utilities, then double-click Terminal or press
+  ⌘+spacebar to open Search, then type terminal."
+
+I do appreciate accounting for all questions a newbie might have,
+but this is assuming that the target audience is somebody who wants to program
+for the blockchain,
+but doesn't know how to open a terminal.
+I think most development tutorials will just list "know how to open a termal"
+as a prerequisit,
+and maybe link to outside documentation.
+It's not really the role of the docs here to explain how to open applications on a mac.
+
+There may be some assumption here that Linux users know more about how to operate a terminal
+than macOS users,
+which could lead to the instructions glossing over how to configure `PATH`
+(which just works on macOS),
+while also including very detailed instructions for operating the terminal application.
+Or maybe the assumption is just that more developers are doing their local hacking
+on macOS.
+
+Or maybe the writer was just using a Mac.
+
+Anyway, in this text:
+
+> "Click Shell, then select New Tab to open a new terminal in your current
+  working directory.
+
+> Click Shell and select New Window, then run cd ~/ic-projects/hello in the new
+  terminal if your hello project is in the ic-projects working folder."
+
+This is presenting two alternatives,
+but only one includes instructions for changing directories to the project folder;
+and this is the first mention of `~/ic-projects` &mdash;
+the `dfx new hello` instructions didn't say anything about it.
+
+I don't notice the instruction that `dfx start` needs to be run inside
+the project folder,
+probably because that instruction is buried inside the instruction for how
+operate the macOS terminal.
+
+So I run `dfx start` in the wrong folder:
+
+```
+dfx start
+Cannot find dfx configuration file in the current working directory. Did you forget to create one?
+```
+
+`dfx` speculates that I forgot to create a "dfx configuration file"
+(which I don't know anything about yet, but is appears to be called `dfx.json`).
+Its speculation is incorrect.
+I created it, indirectly;
+I'm just not in the right folder.
+
+Is forgetting to create a `dfx.json` file the most common explanation for this error?
+
+Suggestions from developer tools can be awesome when they are 100% right.
+They can be infuriating when they are wrong.
+
+(I enter a momentary reverie about the times `rustc` or `clippy` have made wrong suggestions).
+
+Here's the comparable `cargo` error:
+
+```
+error: could not find `Cargo.toml` in `/home/ubuntu/dfinity/hello` or any parent directory
+```
+
+I get the filename its looking for,
+and no attempt to guess why it's missing.
+I also get the directory it's looking in,
+which on consideration I think is pretty thoughtful &mdash;
+I have on multiple occassions seen less experienced developers
+take a surprisingly long time after these types of errors to check what directory
+they are actually in,
+and this puts that information right in front of them.
+
+I run `dfx start` in the correct folder:
+
+```
+$ dfx start
+Jan 24 18:15:14.129 INFO ic-starter. Configuration: ValidatedConfig { replica_path: Some("/home/ubuntu/.cache/dfinity/versions/0.6.20/replica"), replica_version: "0.1.0", log_level: Warning, subnet_id: fscpm-uiaaa-aaaaa-aaaap-yai, cargo_bin: "cargo", cargo_opts: "", state_dir: "/home/ubuntu/dfinity/hello/.dfx/state/replicated_state", http_listen_addr: V4(127.0.0.1:0), http_port_file: Some("/home/ubuntu/dfinity/hello/.dfx/replica-configuration/replica-1.port"), metrics_addr: None, hypervisor_create_funds_whitelist: "*", artifact_pool_dir: "/home/ubuntu/dfinity/hello/.dfx/state/replicated_state/node-100/ic_consensus_pool", crypto_root: "/home/ubuntu/dfinity/hello/.dfx/state/replicated_state/node-100/crypto", state_manager_root: "/home/ubuntu/dfinity/hello/.dfx/state/replicated_state/node-100/state", registry_file: "/home/ubuntu/dfinity/hello/.dfx/state/replicated_state/registry.proto", bootstrap_registry: None, state_dir_holder: None }, Application: starter
+Jan 24 18:15:14.129 INFO Initialize replica configuration "/home/ubuntu/dfinity/hello/.dfx/state/replicated_state/ic.json5", Application: starter
+Jan 24 18:15:14.536 ERRO s:fscpm-uiaaa-aaaaa-aaaap-yai/n:eq5dc-p6wlh-rvwea-wfxrq-fqewv-n4q4v-k22qr-awprk-mcqa5-vjyrh-aqe/ic_messaging/xnet_endpoint No XNet configuration for node eq5dc-p6wlh-rvwea-wfxrq-fqewv-n4q4v-k22qr-awprk-mcqa5-vjyrh-aqe. This is an error in production, but may be ignored in single-subnet test deployments.
+Jan 24 18:15:15.537 WARN s:fscpm-uiaaa-aaaaa-aaaap-yai/n:eq5dc-p6wlh-rvwea-wfxrq-fqewv-n4q4v-k22qr-awprk-mcqa5-vjyrh-aqe/ic_http_handler/ic_http_handler NNS subnet not found in network topology. Skipping fetching the delegation.
+Starting webserver on port 42067 for replica at "http://localhost:42067"
+binding to: V4(127.0.0.1:8000)
+replica(s): http://localhost:42067/
+Jan 24 18:17:52.946 WARN s:fscpm-uiaaa-aaaaa-aaaap-yai/n:eq5dc-p6wlh-rvwea-wfxrq-fqewv-n4q4v-k22qr-awprk-mcqa5-vjyrh-aqe/ic_state_layout/utils StateManager runs on a filesystem not supporting reflinks (attempted to reflink /home/ubuntu/dfinity/hello/.dfx/state/replicated_state/node-100/state/tip/subnet_queues.pbuf => /home/ubuntu/dfinity/hello/.dfx/state/replicated_state/node-100/state/fs_tmp/scratchpad_0000000000000064/subnet_queues.pbuf), running big canisters can be very slow
+```
+
+Oof, this is a mouthful.
+
+Here's what it looks like wrapped in my terminal:
+
+```
+$ dfx start
+Jan 24 18:15:14.129 INFO ic-starter. Configuration: ValidatedConfig { replica_path: Some("/home/ubuntu/.cache/dfinity/versions/0.6.20/
+replica"), replica_version: "0.1.0", log_level: Warning, subnet_id: fscpm-uiaaa-aaaaa-aaaap-yai, cargo_bin: "cargo", cargo_opts: "", s
+tate_dir: "/home/ubuntu/dfinity/hello/.dfx/state/replicated_state", http_listen_addr: V4(127.0.0.1:0), http_port_file: Some("/home/ubu
+ntu/dfinity/hello/.dfx/replica-configuration/replica-1.port"), metrics_addr: None, hypervisor_create_funds_whitelist: "*", artifact_po
+ol_dir: "/home/ubuntu/dfinity/hello/.dfx/state/replicated_state/node-100/ic_consensus_pool", crypto_root: "/home/ubuntu/dfinity/hello/
+.dfx/state/replicated_state/node-100/crypto", state_manager_root: "/home/ubuntu/dfinity/hello/.dfx/state/replicated_state/node-100/sta
+te", registry_file: "/home/ubuntu/dfinity/hello/.dfx/state/replicated_state/registry.proto", bootstrap_registry: None, state_dir_holde
+r: None }, Application: starter
+Jan 24 18:15:14.129 INFO Initialize replica configuration "/home/ubuntu/dfinity/hello/.dfx/state/replicated_state/ic.json5", Applicati
+on: starter
+Jan 24 18:15:14.536 ERRO s:fscpm-uiaaa-aaaaa-aaaap-yai/n:eq5dc-p6wlh-rvwea-wfxrq-fqewv-n4q4v-k22qr-awprk-mcqa5-vjyrh-aqe/ic_messaging/
+xnet_endpoint No XNet configuration for node eq5dc-p6wlh-rvwea-wfxrq-fqewv-n4q4v-k22qr-awprk-mcqa5-vjyrh-aqe. This is an error in prod
+uction, but may be ignored in single-subnet test deployments.
+Jan 24 18:15:15.537 WARN s:fscpm-uiaaa-aaaaa-aaaap-yai/n:eq5dc-p6wlh-rvwea-wfxrq-fqewv-n4q4v-k22qr-awprk-mcqa5-vjyrh-aqe/ic_http_handl
+er/ic_http_handler NNS subnet not found in network topology. Skipping fetching the delegation.
+Starting webserver on port 42067 for replica at "http://localhost:42067"
+binding to: V4(127.0.0.1:8000)
+replica(s): http://localhost:42067/
+Jan 24 18:17:52.946 WARN s:fscpm-uiaaa-aaaaa-aaaap-yai/n:eq5dc-p6wlh-rvwea-wfxrq-fqewv-n4q4v-k22qr-awprk-mcqa5-vjyrh-aqe/ic_state_layo
+ut/utils StateManager runs on a filesystem not supporting reflinks (attempted to reflink /home/ubuntu/dfinity/hello/.dfx/state/replica
+ted_state/node-100/state/tip/subnet_queues.pbuf => /home/ubuntu/dfinity/hello/.dfx/state/replicated_state/node-100/state/fs_tmp/scratc
+hpad_0000000000000064/subnet_queues.pbuf), running big canisters can be very slow
+```
+
+Frankly, it looks like junk:
+debug printing,
+huge wrapped lines,
+extremely long identifiers,
+inconsistent formatting,
+inconsistent language.
+It's unscannable spew.
+
+Some of the lines here are not log lines,
+but are just output straight to the console,
+and have a different format.
+
+There's an error here that explains that it is actually not an error.
+
+Here's what a substrate node looks like when it launches:
+
+```
+2020-11-25 00:05:57  Running in --dev mode, RPC CORS has been disabled.
+2020-11-25 00:05:57  Canvas Node
+2020-11-25 00:05:57  ✌️  version 0.1.0-e189090-x86_64-linux-gnu
+2020-11-25 00:05:57  ❤️  by Canvas, 2020-2020
+2020-11-25 00:05:57  📋 Chain specification: Development
+2020-11-25 00:05:57  🏷 Node name: somber-thread-7554
+2020-11-25 00:05:57  👤 Role: AUTHORITY
+2020-11-25 00:05:57  💾 Database: RocksDb at /tmp/substrateBjvYLz/chains/dev/db
+2020-11-25 00:05:57  ⛓  Native runtime: canvas-8 (canvas-0.tx1.au1)
+2020-11-25 00:05:57  🔨 Initializing Genesis block/state (state: 0x76e4…0f61, header-hash: 0x70f1…6167)
+2020-11-25 00:05:57  👴 Loading GRANDPA authority set from genesis on what appears to be first startup.
+2020-11-25 00:05:57  ⏱  Loaded block-time = 6000 milliseconds from genesis on first-launch
+2020-11-25 00:05:57  Using default protocol ID "sup" because none is configured in the chain specs
+2020-11-25 00:05:57  🏷 Local node identity is: 12D3KooWDdvLqPW8gzaPBWgYjd6Q2yC2abk6713QykMfVAGHVtfr
+2020-11-25 00:05:57  📦 Highest known block at #0
+2020-11-25 00:05:57  〽️ Prometheus server started at 127.0.0.1:9615
+2020-11-25 00:05:57  Listening for new connections on 127.0.0.1:9944.
+2020-11-25 00:06:00  🙌 Starting consensus session on top of parent 0x70f1a0488a744075c07ca30d890d981697ffff0c2ef024e9753b9152afd46167
+2020-11-25 00:06:00  🎁 Prepared block for proposing at 1 [hash: 0x50ff56ca14d680e03c3c1a2a231f27a1c4ffee2c52bba5a8459112f5a375c2ff; p
+arent_hash: 0x70f1…6167; extrinsics (1): [0x115d…2969]]
+2020-11-25 00:06:00  🔖 Pre-sealed block for proposal at 1. Hash now 0x0aee39eb04a2283232d41ca12ea1418f3215378455e2ea4e0e9312ec9455307
+2, previously 0x50ff56ca14d680e03c3c1a2a231f27a1c4ffee2c52bba5a8459112f5a375c2ff.
+2020-11-25 00:06:00  ✨ Imported #1 (0x0aee…3072)
+```
+
+This is pretty easy to scan for useful information.
+On the console the timestamp is colored in such a way that,
+even with some lines wrapping,
+each log entry is easy to identify.
+
+When a server starts logging,
+as a newcomer the two thinngs usually I want to know are:
+
+- Is it operating correctly?
+- What ports is it listening on?
+
+In my own software I generally try to make those the final pieces of information printed
+before the server starts idling.
+
+`dfx start` ends like this
+
+```
+$ dfx start
+...
+Jan 24 18:15:15.537 WARN s:fscpm-uiaaa-aaaaa-aaaap-yai/n:eq5dc-p6wlh-rvwea-wfxrq-fqewv-n4q4v-k22qr-awprk-mcqa5-vjyrh-aqe/ic_http_handl
+er/ic_http_handler NNS subnet not found in network topology. Skipping fetching the delegation.
+Starting webserver on port 42067 for replica at "http://localhost:42067"
+binding to: V4(127.0.0.1:8000)
+replica(s): http://localhost:42067/
+Jan 24 18:17:52.946 WARN s:fscpm-uiaaa-aaaaa-aaaap-yai/n:eq5dc-p6wlh-rvwea-wfxrq-fqewv-n4q4v-k22qr-awprk-mcqa5-vjyrh-aqe/ic_state_layo
+ut/utils StateManager runs on a filesystem not supporting reflinks (attempted to reflink /home/ubuntu/dfinity/hello/.dfx/state/replica
+ted_state/node-100/state/tip/subnet_queues.pbuf => /home/ubuntu/dfinity/hello/.dfx/state/replicated_state/node-100/state/fs_tmp/scratc
+hpad_0000000000000064/subnet_queues.pbuf), running big canisters can be very slow
+...
+```
+
+And it's not all that clear.
+There are two different output formats (log lines and regular printlns).
+The three printlns,
+which are probably the information the devs want me to see most,
+are visually obscured in the line-wrapped log lines.
+In the important printlns,
+there are two addresses involved,
+printed in three different ways.
+Port 8000 is bound for something, but what?
+We're told that a webserver for "replicas" is listening on port 42067,
+twice,
+with the port mentioned three times.
+The first time we're told what's about to happen ("starting");
+the last time it's implied that the port has successfully opened and is listening.
+The port 8000 message again says what's about to happen ("binding to"),
+but not that that port has successfully opened and is listening.
+
+
+
+
+## Deploying and running the contract
+
+The next step of the quick start
+is to [register, build, and deploy the application][rbdta].
+
+[rbdta]: https://sdk.dfinity.org/docs/quickstart/local-quickstart.html#register-ids
+
+`dfx deploy` builds and deploys the two canisters in the project.
+One of those canisters is `hello_assets`,
+which is the frontend for the web application.
+
+So that's a notable difference from Ethereum-like platforms,
+where the frontend that use a contract just live on the web somehow.
+Here the frontend code lives in the network's own storage,
+and a network node can serve the entire web app.
+
+I notice that there is no Rust in the generated `hello` applicaiton &mdash;
+just an a simple npm package configuration that delegates entirely to webpack,
+the `hello_assets` web application, and a `hello.mo` Motoko script.
+
+I am getting a picture of how the developer experience with this system could end up quite fun,
+with several of the typical rough edges of Ethereum-style application development out of the picture.
+
+The rest of the local quick-start proceeds smoothly.
+
+I run the `greet` method and get the output as expected:
+
+```
+$ dfx canister call hello greet everyone
+("Hello, everyone!")
+```
+
+I load the app in the web browser and it runs.
+
+
+
+
+
+## Aimee resumes her tutorial
+
+
+Aimee, a day after deploying "hello",
+comes back to the tutorial,
+restarts here node with `dfx start`.
+She realizes she no longer knows the ID
+of the canister she deployed yesterday.
+This is information shee needs to open it in the web UI
+at
+
+```
+http://127.0.0.1:8000/?canisterId=<...>
+```
+
+She finds that information in her terminal backscroll.
+Probably we could have figured out how to query that information
+otherwise.
+
+Aimee finds this command hard to read:
+
+```
+dfx canister call hello greet everyone
+```
+
+It makes sense to me,
+knowing how CLI subcommands work,
+and realizing "hello" is a contract,
+"greet" is a method,
+and "everyone" is an argument to that method.
+
+Although I think this unfurling of sub-commands within sub-commands,
+from the CLI commands into the contract methods,
+is elegant,
+I do recognize that the lack of argument names means that the command itself contains
+no meta-information about what "hello", "greet", and "everyone" are.
+
+She finds it not clear where the CLI sub-commands end and there arguments begin,
+expecting _some_ `--foo`-style arguments somewhere.
+
+I like this command though :)
+
+She takes the opportunity to explore the feedback she gets from the CLI if these
+arguments are progresively added from `dfx canister call`:
+
+```
+$ dfx canister call 
+error: The following required arguments were not provided:
+    <canister-name>
+    <method-name>
+
+USAGE:
+    dfx canister call [FLAGS] [OPTIONS] <canister-name> <method-name> [argument]
+
+For more information try --help
+
+$ dfx canister call hello
+error: The following required arguments were not provided:
+    <method-name>
+
+USAGE:
+    dfx canister call [FLAGS] [OPTIONS] <canister-name> <method-name> [argument]
+
+For more information try --help
+
+$ dfx canister call hello memememe
+The Replica returned an error: code 3, message: "Canister rwlgt-iiaaa-aaaaa-aaaaa-cai has no update method 'memememe'"
+
+$ dfx canister call hello greet
+Invalid data: Unable to serialize Candid values: wrong number of argument values
+
+$ dfx canister call hello greet memeememememme
+("Hello, memeememememme!")
+```
+
+This is pretty helpful.
+It is most helpful while the CLI is parsing known arguments.
+When she accidentally forgets the "greet" method name,
+the error does provide enough info to figure out what went wrong.
+The errors that don't come from the command-line parser could probably be more consistent and helpful,
+but I don't have specific insights to share.
+
+
+
+
+
+## Aimee tries deploying to the live network
+
+The quick start documentation also includes a page on [network deployment][nwdm].
+
+[nwdm]: https://sdk.dfinity.org/docs/quickstart/network-quickstart.html
+
+Aimee tries to follow these instructions.
+Many of the instructions are the same,
+except they need to specify `--network=ic`,
+or something similar.
+
+Steps 4 and 5 of [register, build, and deploy the application][rbdan]
+confuse her.
+
+[rdban]: https://sdk.dfinity.org/docs/quickstart/network-quickstart.html#net-deploy
+
+In these steps we are told to check the cycle balance of the canister,
+and to call the `greet` method of `hello`,
+with these two commands:
+
+```
+dfx canister --network=ic call <WALLET-CANISTER-ID> cycle_balance
+dfx canister call hello greet everyone
+```
+
+The number of problems we run into attempting to accomplish these two steps
+becomes overwhelming,
+and my notes are filled with digressions.
+
+Firstly,
+we aren't told explicitly what a "wallet canister ID" is,
+but we think it should be easy to guess that it is printed in this line,
+printed by `dfx deploy --network=ic`:
+
+```
+"hello" canister created on network "ic" with canister id: "xibue-hiaaa-aaaaa-qabza-cai"
+```
+
+Unfortunately,
+there just doesn't seem to be a method called `cycle_balance`
+on the canister.
+We try running this command in a bunch of variations,
+local network vs live network,
+cannister id vs cannister name:
+
+```
+dfx canister --network=ic call xibue-hiaaa-aaaaa-qabza-cai cycle_balance
+dfx canister --network=ic call hello cycle_balance
+dfx canister call rwlgt-iiaaa-aaaaa-aaaaa-cai cycle_balance
+dfx canister call hello cycle_balance
+```
+
+All return the same error:
+
+```
+The Replica returned an error: code 3, message: "Canister xibue-hiaaa-aaaaa-qabza-cai has no update method 'cycle_balance'"
+```
+
+riprepping the docs repo yields 3 mentions of "wallet",
+and leads us to think maybe there is another cannister
+that we don't know about that is a special "wallet cannister".
+
+We're lost and keep going.
+
+The second command we are told to execute,
+
+```
+dfx canister call hello greet everyone
+```
+
+This pretty clearly is missing the `--network=ic` argument.
+It doesn't work while we aren't running `dfx start`.
+
+Running it with `--network=ic` produces the same expected output
+as on the local network.
+
+We [submit a pull request to fix the docs][pr].
+
+[pr]: https://github.com/dfinity/docs/pull/289
+
+While we are working through these steps in the instructions,
+we hit this error:
+
+
+```
+$ dfx deploy --network=ic
+Deploying all canisters.
+Creating canisters...
+Creating canister "hello"...
+The replica returned an HTTP Error: Http Error: status 504 Gateway Timeout,
+content type "text/html", content: [60, 104, 116, 109, 108, 62, 13, 10, 60, 104,
+101, 97, 100, 62, 60, 116, 105, 116, 108, 101, 62, 53, 48, 52, 32, 71, 97, 116,
+101, 119, 97, 121, 32, 84, 105, 109, 101, 45, 111, 117, 116, 60, 47, 116, 105,
+116, 108, 101, 62, 60, 47, 104, 101, 97, 100, 62, 13, 10, 60, 98, 111, 100, 121,
+62, 13, 10, 60, 99, 101, 110, 116, 101, 114, 62, 60, 104, 49, 62, 53, 48, 52,
+32, 71, 97, 116, 101, 119, 97, 121, 32, 84, 105, 109, 101, 45, 111, 117, 116,
+60, 47, 104, 49, 62, 60, 47, 99, 101, 110, 116, 101, 114, 62, 13, 10, 60, 104,
+114, 62, 60, 99, 101, 110, 116, 101, 114, 62, 110, 103, 105, 110, 120, 47, 49,
+46, 49, 56, 46, 48, 32, 40, 85, 98, 117, 110, 116, 117, 41, 60, 47, 99, 101,
+110, 116, 101, 114, 62, 13, 10, 60, 47, 98, 111, 100, 121, 62, 13, 10, 60, 47,
+104, 116, 109, 108, 62, 13, 10]
+```
+
+Here,
+the server we're connecting to returned an error,
+with accompanying HTML explaining it,
+and `dfx` has unhelpfully presented the HTML as bytes.
+
+At some point Aimee attempted to call `hello greet`
+by "hello"s canister ID, instead of by name,
+and got this error:
+
+```
+$ dfx canister --network=ic call xibue-hiaaa-aaaaa-qabza-cai greet everyone
+error: parser error
+  ┌─ Candid argument:1:1
+  │
+1 │ everyone
+  │ ^^^^^^^^ Unexpected token
+  │
+  = Expects "("
+
+Invalid argument: Invalid Candid values: Candid parser error: Unrecognized token `Id("everyone")` found at 0:8
+Expected one of "("
+```
+
+This is confusing and meaningless to us.
+
+
 
 
 
@@ -525,6 +1045,7 @@ is to run a "hello world" cannister.
 
 
 ## TODO
+
 
 First impressions are important.
 Someone trying to run DFINITY right now
