@@ -11,19 +11,19 @@ but have not looked at it closely.
 I know that they are building a programmable blockchain,
 and that they have their own smart contract programming language.
 
-They call their network the "Internet Computer".
-I just say "dfinity" in this post.
-
-- [TLDR][#user-content-tldr]
-- [What we're going to do][#user-content-what-were-going-to-do]
-- [Starting by doing some actual research][#user-content-starting-by-doing-some-actual-research]
-- [Installing the tools][#user-content-installing-the-tools]
-- [Aimee upgrades her `dfx`][#user-content-aimee-upgrades-her-dfx]
-- [Creating my own project][#user-content-creating-my-own-project]
-- [Running a local test node][#user-content-running-a-local-test-node]
-- [Deploying and running the contract][#user-content-deploying-and-running-the-contract]
-- [Aimee resumes her tutorial][#user-content-aimee-resumes-her-tutorial]
-- [Aimee tries deploying to the live network][#user-content-aimee-tries-deploying-to-the-live-network]
+- [TLDR](#user-content-tldr)
+- [What we're going to do](#user-content-what-were-going-to-do)
+- [Starting by doing some research](#user-content-starting-by-doing-some-research)
+- [Installing the tools](#user-content-installing-the-tools)
+- [Aimee upgrades her `dfx`](#user-content-aimee-upgrades-her-dfx)
+- [Creating my own project](#user-content-creating-my-own-project)
+- [Running a local test node](#user-content-running-a-local-test-node)
+- [Deploying and running the contract](#user-content-deploying-and-running-the-contract)
+- [Aimee resumes her tutorial](#user-content-aimee-resumes-her-tutorial)
+- [Deploying to the live network](#user-content-deploying-to-the-live-network)
+- [Writing our own contract](#user-content-writing-our-own-contract)
+- [Writing a contract in Rust?](#user-content-writing-a-contract-in-rust)
+- [Final thoughts](#user-content-final-thoughts)
 
 
 
@@ -40,7 +40,7 @@ here's a summary of our findings:
   dfinity's smart contract language,
   looks more fun than in Solidity,
   or programming smart contracts in Rust.
-- Their storage model uniquely involves saving and
+- The dfinity storage model uniquely involves saving and
   restoring a program's entire memory space,
   such that the program behaves as if it were running
   forever.
@@ -48,7 +48,6 @@ here's a summary of our findings:
   which hindered our ability to debug and contribute.
 - The toolchain is more immature than others we have tried,
   and we hit many bugs in both the tools and docs.
-- TODO
 
 
 ## What we're going to do
@@ -62,7 +61,7 @@ It is a simple program that lets the caller bid to set a singleton string messag
 [tba]: https://github.com/Aimeedeer/bigannouncement/
 
 
-## Starting by doing some actual research
+## Starting by doing some research
 
 Myself,
 when I start a project,
@@ -567,8 +566,7 @@ is that it prints a massive welcome greeting:
 huge logo, links to docs, basic commands.
 
 This is perfectly fine for something on first run,
-but I don't ever want to see this again.
-
+but I don't want to see this again.
 It's obvious though that this is not something that happens only on first run,
 since we've seen this message multiple times.
 
@@ -899,7 +897,7 @@ even with some lines wrapping,
 each log entry is easy to identify.
 
 When a server starts logging,
-as a newcomer the two things usually I want to know are:
+as a newcomer the two things I usually want to know are:
 
 - Is it operating correctly?
 - What ports is it listening on?
@@ -1065,7 +1063,7 @@ but I don't have specific insights to share.
 
 
 
-## Aimee tries deploying to the live network
+## Deploying to the live network
 
 The quick start documentation also includes a page on [network deployment][nwdm].
 
@@ -1193,33 +1191,184 @@ Expected one of "("
 
 This is confusing and meaningless to us.
 
+Continuing the network deployment,
+the next step is to [test the application front-end][ttafe].
+
+[ttafe]: https://sdk.dfinity.org/docs/quickstart/network-quickstart.html#quickstart-frontend
+
+Following these instructions,
+we should be able to open our "hello" app at
+this URL:
+
+> [https://ur4ki-qiaaa-aaaab-aacga-cai.ic0.app/](https://ur4ki-qiaaa-aaaab-aacga-cai.ic0.app/)
+
+Even though the docs said to use the ID of the _hello_assets_
+cannister,
+we mistakenly use the ID of our _hello_ contract cannister,
+and get this error:
+
+> 
+
+In Firefox:
+
+```
+An error happened:
+
+v/<@https://xtnc2-uaaaa-aaaab-qadaq-cai.ic0.app/bootstrap-0e838d0d6297858d1bfe.js:2:43879
+```
+
+In Brave:
+
+```
+An error happened:
+Error: Query failed:
+  Status: rejected
+  Message: IC0302: Canister xtnc2-uaaaa-aaaab-qadaq-cai has no query method 'retrieve'
+
+    at r.retrieve (https://xtnc2-uaaaa-aaaab-qadaq-cai.ic0.app/bootstrap-0e838d0d6297858d1bfe.js:2:43879)
+    at async _loadJs (https://xtnc2-uaaaa-aaaab-qadaq-cai.ic0.app/bootstrap-0e838d0d6297858d1bfe.js:2:245656)
+    at async _main (https://xtnc2-uaaaa-aaaab-qadaq-cai.ic0.app/bootstrap-0e838d0d6297858d1bfe.js:2:246619)
+```
+
+We are confused over this a long time until Aimee realizes she used the wrong canister ID.
+Nagivating to the correct _assets_ URL of course works.
 
 
+## Writing our own contract
+
+To create our own contract we first try to start by copying the [echo example][echo].
+
+[echo]: https://github.com/dfinity/examples/tree/master/motoko/echo
+
+The example though is out of date and running `dfx deploy` yields:
+
+```
+Warning: The version of DFX used (0.6.12) is different than the version being run (0.6.20).
+This might happen because your dfx.json specifies an older version, or DFX_VERSION is set in your environment.
+We are forwarding the command line to the old version. To disable this warning, set the DFX_WARNING=-version_check environment variable.
+
+Error when trying to forward to project dfx:
+Unknown version '0.6.12'.
+Installed executable: 0.6.20
+```
+
+Editing `dfx.json` to update the `dfx` version fixes the problem.
+
+Regardless, we realize that `echo` isn't a better base to build off of
+than `hello`,
+so we go back to using `dfx new` to create our project,
+in this case `dfx new tba`.
+
+When running `dfx start` we again are
+"strongly encouraged to upgrade by running 'dfx upgrade'",
+though this time `dfx` doesn't attempt to do the upgrade itself.
+
+We run `dfx upgrade` and it does nothing
+(later we see the same suggestion,
+we run `dfx upgrade`,
+and it does upgrade to 0.6.21).
+
+We edit our Motoko script to be
+
+```
+actor {
+    stable var tba_msg = "The Big Announcement";
+
+    public func set_message(msg : Text) {
+        tba_msg := msg;
+    };
+
+    public func get_message() : async Text {
+        return tba_msg;
+    };
+};
+```
+
+We deploy it with `dfx deploy`
+and test it:
+
+```
+$ dfx canister call tba set_message "this is a test"
+()
+$ dfx canister call tba get_message
+("this is a test")
+```
+
+At some point we accidentally replace the type `Text`
+with the typo `Test` and this is the compiler error:
+
+```
+$ dfx deploy
+Deploying all canisters.
+All canisters have already been created.
+Building canisters...
+Building frontend...
+The build step failed for canister 'rwlgt-iiaaa-aaaaa-aaaaa-cai' with an
+embedded error: The command '"/home/ubuntu/.cache/dfinity/versions/0.6.21/moc"
+"/home/ubuntu/dfinity/tba/src/tba/main.mo" "-o"
+"/home/ubuntu/dfinity/tba/.dfx/local/canisters/tba/tba.did" "--idl"
+"--actor-idl" "/home/ubuntu/dfinity/tba/.dfx/local/canisters/idl/"
+"--actor-alias" "tba" "rwlgt-iiaaa-aaaaa-aaaaa-cai" "--actor-alias" "tba_assets"
+"rrkah-fqaaa-aaaaa-aaaaq-cai" "--package" "base"
+"/home/ubuntu/.cache/dfinity/versions/0.6.21/base"' failed with exit status
+'exit code: 1'.
+Stdout:
+
+Stderr:
+/home/ubuntu/dfinity/tba/src/tba/main.mo:8.39-8.43: type error [M0029], unbound type Test
+```
+
+The final error, "unbound type Test",
+is not too hard to understand,
+and we get a line and column number.
+I think it's reasonable.
+There is a lot of spew preceding it,
+but I'm undecided on if it is out of place or not &mdash;
+I do like to see the underlying commands being run
+when my compiles fail.
 
 
+## Writing a contract in Rust?
+
+Dfinity runs a wasm VM,
+and it is theoretically possible to write contracts
+in any language.
+
+The docs do have [a section on writing contracts in Rust][cir].
+
+[cir]: https://sdk.dfinity.org/docs/developers-guide/work-with-languages.html#_using_rust
+
+Aimee spends some time trying to follow these docs,
+but doesn't succeed.
+
+A cursory glance at them reveals they are inconsistent and incomplete.
+
+The two problems I see:
+
+- Different steps explain about putting the application code in the `src` directory,
+  but seem to be using several different names and conventions.
+  In one step `Cargo.toml` is placed directly under `src`,
+  in other steps there is a `src/my_rust_program` directory
+  to contain the app.
+
+- The build is for the `wasm32-unknown-unknown` target,
+  but there's no explaination or example of how to structure the code
+  to export the correct symbols or otherwise interact
+  with the dfinity runtime.
+
+Somebody knowledgable could probably figure it out by
+cribbing off of the [C examples][cex].
+
+[cex]: https://github.com/dfinity/examples/tree/master/c/
 
 
+## Final thoughts
 
+I put the TLDRs at the top of this post,
+so I don't have much to say here.
 
+It was a frustrating experience.
+As they roll out their mainnet,
+I expect the dfinity devs will put some fresh focus on the development experience.
 
-## TODO
-
-First impressions are important.
-Someone trying to run dfinity right now
-is seeing a lot of easily fixable rough edges.
-
-
-I have been vaguelly aware of dfinity for a while,
-but have thought it was not ready for a close look
-since the GitHub seems to be missing the big pieces of a blockchain &mdash;
-the full node does not appear to be open source yet.
-
-I generally join any technical chat for Rust blockchain projects I follow.
-I peek into [dfinity's telegram][dt],
-via the link on their website.
-It's a typical non-technical blockchain chat,
-filled with speculators.
-I leave.
-
-[dt]: https://t.me/dfinity/
 
