@@ -574,14 +574,18 @@ since we've seen this message multiple times.
 
 We notice one other problem with the banner:
 it is not colored correctly on this terminal.
+Here's a screenshot:
 
 ![dfx banner](images/dfx-new-sth.png)
 
 I've seen this banner in a 256 color terminal
-and it is properly colored with a gradient.
+and it is properly colored with a gradient:
 
 ![dfx banner](images/dfx-correct-black.png)
 
+That's actually really cool,
+but I still don't want to see it more than once.
+Show this after installing `dfx` and be done with it.
 
 I wonder if `dfx` is one of the tools with code available
 under the GitHub org,
@@ -601,7 +605,8 @@ but I don't think the code for it is here.
 
 ## Creating my own project
 
-The next quick start step is to [create a project][cap].
+Back to my own installation,
+the next quick start step is to [create a project][cap].
 
 [cap]: https://sdk.dfinity.org/docs/quickstart/local-quickstart.html#create-a-new-project
 
