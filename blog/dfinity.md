@@ -1,36 +1,68 @@
 # First look at programming for DFINITY
 
 Continuing our adventure exploring programmable Rust blockchains,
-this time we're going to dive into [DFINITY].
+this time [Aimee] and I are going to dive into [DFINITY].
 
+[Aimee]: https://github.com/Aimeedeer/
 [DFINITY]: https://github.com/dfinity
 
-TODO
+I have been aware of dfinity for a while,
+but have not looked at it closely.
+I know that they are building a programmable blockchain,
+and that they have their own smart contract programming language.
 
-I have been vaguelly aware of DFINITY for a while,
-but have thought it was not ready for a close look
-since the GitHub seems to be missing the big pieces of a blockchain &mdash;
-the full node does not appear to be open source yet.
+They call their network the "Internet Computer".
+I just say "dfinity" in this post.
 
-I generally join any technical chat for Rust blockchain projects I follow.
-I peek into [DFINITY's telegram][dt],
-via the link on their website.
-It's a typical non-technical blockchain chat,
-filled with speculators.
-I leave.
+- [TLDR][#user-content-tldr]
+- [What we're going to do][#user-content-what-were-going-to-do]
+- [Starting by doing some actual research][#user-content-starting-by-doing-some-actual-research]
+- [Installing the tools][#user-content-installing-the-tools]
+- [Aimee upgrades her `dfx`][#user-content-aimee-upgrades-her-dfx]
+- [Creating my own project][#user-content-creating-my-own-project]
+- [Running a local test node][#user-content-running-a-local-test-node]
+- [Deploying and running the contract][#user-content-deploying-and-running-the-contract]
+- [Aimee resumes her tutorial][#user-content-aimee-resumes-her-tutorial]
+- [Aimee tries deploying to the live network][#user-content-aimee-tries-deploying-to-the-live-network]
 
-[dt]: https://t.me/dfinity/
+
+
+## TLDR
+
+These experience reports tend to be so detailed that they are
+mostly useful to the product developers,
+and not really worth reading for anybody else.
+
+For other audiences,
+here's a summary of our findings:
+
+- Programming in Motoko,
+  dfinity's smart contract language,
+  looks more fun than in Solidity,
+  or programming smart contracts in Rust.
+- Their storage model uniquely involves saving and
+  restoring a program's entire memory space,
+  such that the program behaves as if it were running
+  forever.
+- The code is mostly not open source yet,
+  which hindered our ability to debug and contribute.
+- The toolchain is more immature than others we have tried,
+  and we hit many bugs in both the tools and docs.
+- TODO
 
 
 ## What we're going to do
 
-For this first look we're going to install the tools and try to implement a contract
-we've implemented before in solidity, near, and ink, [the big announcement][tba].
+For this first look we're going to install the tools,
+walk through the tutorials,
+and then try to implement a contract
+we've implemented before in solidity, near, and ink &mdash; [the big announcement][tba].
+It is a simple program that lets the caller bid to set a singleton string message.
 
-This is a simple program that lets the caller bid to set a singleton string message.
+[tba]: https://github.com/Aimeedeer/bigannouncement/
 
 
-## Starting by doing some actual research!
+## Starting by doing some actual research
 
 Myself,
 when I start a project,
@@ -43,10 +75,10 @@ about "building on the Internet Computer".
 
 [ytpl]: https://www.youtube.com/playlist?list=PLuhDt1vhGcrejCmYeB1uqgl9Y3f6MCyFp
 
-It's an extremely basic series,
+It's a basic introductory series,
 but I did have some takeaways:
 mostly,
-that programming for DFINITY appears to look a lot like traditional programming,
+that programming for dfinity appears to look a lot like traditional programming,
 and _not_ like Solidity-descendant smart contract programming.
 Gas was not mentioned at all,
 and I am curious whether that means the programmer doesn't neeed to worry about gas,
@@ -62,20 +94,20 @@ The code I've seen in the video reads pretty easily.
 
 [Motoko]: https://sdk.dfinity.org/docs/language-guide/motoko.html
 
-I read a blog post by DFINITY's Johan Granström:
-[A Closer Look at Software Canisters, an Evolution of Smart Contracts].
+I read a blog post by dfinity's Johan Granström:
+[A Closer Look at Software Canisters, an Evolution of Smart Contracts][canblog].
 
 [canblog]: https://medium.com/dfinity/software-canisters-an-evolution-of-smart-contracts-internet-computer-f1f92f1bfffb
 
 Many of the capabilities described here sound similar to other smart contract platforms.
 A few that stand out to me though:
 
-- The memory space of a wasm canister is saved and restored every execution!
+- _The memory space of a wasm canister is saved and restored every execution_!
   This should makes it behave as if it were a long-running process,
   even though each invocation may be years apart,
   and on different nodes.
   There is apparently no explicit storage.
-  This is pretty compelling,
+  This is _cool_,
   and I am surprised I haven't seen this done before in the smart contract space.
   It implies though that memory leaks live forever,
   and so does memory fragmentation.
@@ -87,13 +119,17 @@ A few that stand out to me though:
   Ethereum is already too big for most people to run on their own.
   It's not clear if full nodes need permission to join the network.
 
-- Still no mention on gas!
+- Still no mention of gas.
 
-I read another post by DFINITY's TODO
+I begin to read another post by dfinity's Dominic Williams,
+[Announcing the Internet Computer "Mainnet" and a 20-Year Roadmap][twenty].
+This is a good "vision statement" about what dfinity is aiming for,
+but it's verbose,
+and without technical details.
+Definitely worth a read for anybody interested in dfinity.
+I did not finish it.
 
-TODO
-
-https://medium.com/dfinity/announcing-internet-computer-mainnet-and-a-20-year-roadmap-790e56cbe04a
+[twenty]: https://medium.com/dfinity/announcing-internet-computer-mainnet-and-a-20-year-roadmap-790e56cbe04a
 
 
 
@@ -113,19 +149,49 @@ not connecting to any testnet.
 [ldev]: https://sdk.dfinity.org/docs/quickstart/local-quickstart.html
 
 The tools are installed via `ssh`,
-which is common and I am fine with:
+which is common and I am fine with.
+
+I download [the script][script] and give it a quick review,
+to make sure it's not doing anything obviously wrong.
+
+[script]: https://sdk.dfinity.org/install.sh
+
+I am tickled to see this comment in the headers:
+
+```
+# Borrowed from rustup (https://sh.rustup.rs)
+```
+
+as _I wrote_ most of rustup's install script.
+I also know smart people have carefully improved it over time &mdash;
+it is a very battle-tested piece of tricky shell script.
+That gives me some immediate confidence in this script.
+There is though a lot of dfinity-specific code here,
+and it is not as lovingly-maintained as rustup's,
+with bizarre spacing and stripped comments
+(it looks like it has been machine-processed).
+Important functionality like
+architecture detection,
+platform-specific quirk handling,
+and the security-sensitive curl configuration
+are borrowed straight from rustup though.
+
+I don't see anything obviously incorrect in the script,
+though its poor readability gives me pause &mdash;
+this is a script some hackers will definitely read before running,
+and it needs to give them confidence.
 
 I run the installation and see:
 
 ```
-$ sh -ci "$(curl -fsSL https://sdk.dfinity.org/install.sh)"
+$ sh -ci "$(curl -fsSL https://sdk.DFINITY.org/install.sh)"
 Executing DFINITY SDK install script, commit: 55f1bbedee393411e1ae3a6eaeb449a6dd047c00
 The DFINITY Canister SDK
 Copyright 2021 DFINITY Stiftung. All Rights Reserved.
 The DFINITY Canister SDK (the "Software") is licensed under the Alpha DFINITY
 Canister SDK License Agreement (the "License"). You may not use the Software
 except in compliance with the License. You may obtain a copy of the License at
-    https://sdk.dfinity.org/sdk-license-agreement.txt
+    https://sdk.DFINITY.org/sdk-license-agreement.txt
 The Software is provided to you AS IS and WITHOUT WARRANTY.
 Do you agree and wish to install the DFINITY Canister SDK [y/N]?
 ```
@@ -143,26 +209,26 @@ Here's a gist:
 It's not a free-software license.
 
 It is called the "Alpha DFINITY ..." license,
-so charitably I am assuming this is a temporary license,
+so I am assuming this is a temporary license,
 and it will change to open source in the future.
-There terms in it are ominous enough that,
-if I weren't here to try it out,
+The terms in it are ominous enough that,
+if I weren't here to blog about it,
 I would stop immediately.
+I scan it to determine whether there are any restrictions
+on what I am intending to publish in this blog,
+and I think the answer is "no".
 
 There's another issue here &mdash;
-this text claims
+the installer's text claims
 
-> "The DFINITY Canister SDK is licensed under the Alpha DFINITY
+> "The dfinity Canister SDK is licensed under the Alpha dfinity
   Canister SDK License Agreement"
 
-Also, the source for at least _part_ of the Canister SDK
+But also, the source for at least _part_ of the Canister SDK
 lives [on GitHub][cdk-rs],
 and claims to be Apache-2.0 licensed.
 
 [cdk-rs]: https://github.com/dfinity/cdk-rs
-
-Anyway,
-noted.
 
 Just to make sure it _is_ possible to opt out at this
 stage of the script,
@@ -171,37 +237,15 @@ which should default to not accepting the license
 (that is what the "y/N" convention means &mdash
 "N" is the default).
 
-Huh.
-
-Instead of accepting _enter_ as "no",
-it said this:
-
-```
-Answer with a yes or no to continue. [y/N]
-```
-
-So I don't get the default-"N".
-
-I hit enter again.
-
 It says the following and exits:
 
 ```
 Please accept the license to continue.
 ```
 
-So the first time,
-the script ignored the capital-letter-is-default convention,
-while still recognizing I didn't entery "y";
-then the second time it accepted the default.
+Great.
 
-I can kind of imagine the reasoning here:
-"maybe they didn't _mean_ to not accept the license &dash;
-let's give the user another change";
-but the inconsistent application of the convention here
-is confusing.
-
-Anyway, now I run it again and enter "y".
+Now I run it again and enter "y".
 
 The install script shows the following and exits:
 
@@ -252,6 +296,39 @@ Maybe it's common on Macs to install directly to `/usr/local/bin`
 without permission.
 On Linux, my `dfx` is in `~/bin`.
 
+While experimenting with the install script I hit a particularly
+strange bug:
+
+When prompted to accept the license,
+if I hit CTRL-C to quit,
+I am _not_ dropped back to my own shell;
+instead I am dropped into _the shell
+the install instructions asked me to run
+as part of downloading and running the script_.
+
+In other words,
+in the command
+
+```
+$ sh -ci "$(curl -fsSL https://sdk.DFINITY.org/install.sh)"
+```
+
+That initial `sh` command is still running after I kill the script.
+
+This confuses me a lot for a bit.
+
+I poke at the script for a bit to see if I can fix the problem,
+and one way to do it is with the `trap` shell command:
+
+```sh
+trap exit 2
+```
+
+Though it should probably do more cleanup than just `exit`.
+I note that rustup does not do this though,
+and I am not sure offhand why rustup's handling of CTRL-C
+works correctly where dfinity's does not.
+
 The next step is to install a VSCode plugin.
 I don't use VSCode,
 so I skip it.
@@ -261,7 +338,7 @@ so I skip it.
 ## Aimee upgrades her `dfx`
 
 Aimee has previously installed `dfx`.
-Today when she ran `dfx new firsttest` to create a DFINITY project,
+Today when she ran `dfx new firsttest` to create a dfinity project,
 she had a confusing experience.
 
 This is what she saw:
@@ -269,7 +346,7 @@ This is what she saw:
 ```
 $ dfx new firsttest
 
-The DFINITY Canister SDK sends anonymous usage data to DFINITY Stiftung by
+The dfinity Canister SDK sends anonymous usage data to dfinity Stiftung by
 default. If you wish to disable this behavior, then please set the environment
 variable DFX_TELEMETRY_DISABLED=1. Learn more at https://sdk.dfinity.org.
 
@@ -1048,6 +1125,21 @@ This is confusing and meaningless to us.
 
 
 First impressions are important.
-Someone trying to run DFINITY right now
+Someone trying to run dfinity right now
 is seeing a lot of missing polish.
+
+
+I have been vaguelly aware of dfinity for a while,
+but have thought it was not ready for a close look
+since the GitHub seems to be missing the big pieces of a blockchain &mdash;
+the full node does not appear to be open source yet.
+
+I generally join any technical chat for Rust blockchain projects I follow.
+I peek into [dfinity's telegram][dt],
+via the link on their website.
+It's a typical non-technical blockchain chat,
+filled with speculators.
+I leave.
+
+[dt]: https://t.me/dfinity/
 
