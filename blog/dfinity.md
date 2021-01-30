@@ -627,8 +627,84 @@ or maybe it's somehow just from node printing a line.
 
 Let's look at what `dfx` has created on disk...
 
-TODO
+```
+$ tree hello -I node_modules
+hello
+├── README.md
+├── dfx.json
+├── package-lock.json
+├── package.json
+├── src
+│   ├── hello
+│   │   └── main.mo
+│   └── hello_assets
+│       ├── assets
+│       │   └── sample-asset.txt
+│       └── public
+│           └── index.js
+└── webpack.config.js
 
+5 directories, 8 files
+```
+
+It's an npm / webpack project.
+`hello` is the contract,
+containing a Motoko script,
+and `hello_assets` is the web app.
+
+`main.mo` contains:
+
+```
+actor {
+    public func greet(name : Text) : async Text {
+        return "Hello, " # name # "!";
+    };
+};
+```
+
+Easy enough.
+
+There's a special `dfx.json` configuration file here,
+used by `dfx`:
+
+```json
+{
+  "canisters": {
+    "hello": {
+      "main": "src/hello/main.mo",
+      "type": "motoko"
+    },
+    "hello_assets": {
+      "dependencies": [
+        "hello"
+      ],
+      "frontend": {
+        "entrypoint": "src/hello_assets/public/index.js"
+      },
+      "source": [
+        "src/hello_assets/assets",
+        "dist/hello_assets/"
+      ],
+      "type": "assets"
+    }
+  },
+  "defaults": {
+    "build": {
+      "packtool": ""
+    }
+  },
+  "dfx": "0.6.20",
+  "networks": {
+    "local": {
+      "bind": "127.0.0.1:8000",
+      "type": "ephemeral"
+    }
+  },
+  "version": 1
+}
+```
+
+Pretty simple.
 
 
 
@@ -636,7 +712,7 @@ TODO
 ## Running a local test node
 
 The next step in the "local quickstart"
-is to [start the local next work][stln].
+is to [start the local network][stln].
 
 [stln]: https://sdk.dfinity.org/docs/quickstart/local-quickstart.html#start-the-local-network
 
@@ -702,8 +778,8 @@ dfx start
 Cannot find dfx configuration file in the current working directory. Did you forget to create one?
 ```
 
-`dfx` speculates that I forgot to create a "dfx configuration file"
-(which I don't know anything about yet, but is appears to be called `dfx.json`).
+`dfx` speculates that I forgot to create a "dfx configuration file",
+which I have already guessed is `dfx.json`.
 Its speculation is incorrect.
 I created it, indirectly;
 I'm just not in the right folder.
@@ -721,7 +797,7 @@ Here's the comparable `cargo` error:
 error: could not find `Cargo.toml` in `/home/ubuntu/dfinity/hello` or any parent directory
 ```
 
-I get the filename its looking for,
+I am given the filename it's looking for,
 and no attempt to guess why it's missing.
 I also get the directory it's looking in,
 which on consideration I think is pretty thoughtful &mdash;
@@ -743,8 +819,6 @@ binding to: V4(127.0.0.1:8000)
 replica(s): http://localhost:42067/
 Jan 24 18:17:52.946 WARN s:fscpm-uiaaa-aaaaa-aaaap-yai/n:eq5dc-p6wlh-rvwea-wfxrq-fqewv-n4q4v-k22qr-awprk-mcqa5-vjyrh-aqe/ic_state_layout/utils StateManager runs on a filesystem not supporting reflinks (attempted to reflink /home/ubuntu/dfinity/hello/.dfx/state/replicated_state/node-100/state/tip/subnet_queues.pbuf => /home/ubuntu/dfinity/hello/.dfx/state/replicated_state/node-100/state/fs_tmp/scratchpad_0000000000000064/subnet_queues.pbuf), running big canisters can be very slow
 ```
-
-Oof, this is a mouthful.
 
 Here's what it looks like wrapped in my terminal:
 
@@ -774,6 +848,8 @@ ted_state/node-100/state/tip/subnet_queues.pbuf => /home/ubuntu/dfinity/hello/.d
 hpad_0000000000000064/subnet_queues.pbuf), running big canisters can be very slow
 ```
 
+This is a mouthful.
+
 Frankly, it looks like junk:
 debug printing,
 huge wrapped lines,
@@ -786,7 +862,8 @@ Some of the lines here are not log lines,
 but are just output straight to the console,
 and have a different format.
 
-There's an error here that explains that it is actually not an error.
+There's an error here that explains that it is actually not an error
+("... may be ignored in single-subnet test deployments").
 
 Here's what a substrate node looks like when it launches:
 
@@ -822,13 +899,10 @@ even with some lines wrapping,
 each log entry is easy to identify.
 
 When a server starts logging,
-as a newcomer the two thinngs usually I want to know are:
+as a newcomer the two things usually I want to know are:
 
 - Is it operating correctly?
 - What ports is it listening on?
-
-In my own software I generally try to make those the final pieces of information printed
-before the server starts idling.
 
 `dfx start` ends like this
 
@@ -879,7 +953,7 @@ One of those canisters is `hello_assets`,
 which is the frontend for the web application.
 
 So that's a notable difference from Ethereum-like platforms,
-where the frontend that use a contract just live on the web somehow.
+where the frontends that use a contract just live on the web somehow.
 Here the frontend code lives in the network's own storage,
 and a network node can serve the entire web app.
 
@@ -942,12 +1016,12 @@ is elegant,
 I do recognize that the lack of argument names means that the command itself contains
 no meta-information about what "hello", "greet", and "everyone" are.
 
-She finds it not clear where the CLI sub-commands end and there arguments begin,
+She finds it not clear where the CLI sub-commands end and their arguments begin,
 expecting _some_ `--foo`-style arguments somewhere.
 
 I like this command though :)
 
-She takes the opportunity to explore the feedback she gets from the CLI if these
+She takes the opportunity to explore the feedback she gets from the CLI as these
 arguments are progresively added from `dfx canister call`:
 
 ```
@@ -1005,7 +1079,7 @@ or something similar.
 Steps 4 and 5 of [register, build, and deploy the application][rbdan]
 confuse her.
 
-[rdban]: https://sdk.dfinity.org/docs/quickstart/network-quickstart.html#net-deploy
+[rbdan]: https://sdk.dfinity.org/docs/quickstart/network-quickstart.html#net-deploy
 
 In these steps we are told to check the cycle balance of the canister,
 and to call the `greet` method of `hello`,
@@ -1021,8 +1095,8 @@ becomes overwhelming,
 and my notes are filled with digressions.
 
 Firstly,
-we aren't told explicitly what a "wallet canister ID" is,
-but we think it should be easy to guess that it is printed in this line,
+we haven't been told explicitly what a "wallet canister ID" is,
+but we guess it is in this output
 printed by `dfx deploy --network=ic`:
 
 ```
@@ -1062,12 +1136,12 @@ dfx canister call hello greet everyone
 ```
 
 This pretty clearly is missing the `--network=ic` argument.
-It doesn't work while we aren't running `dfx start`.
+We check this by proving that it doesn't work while we aren't running `dfx start`
 
 Running it with `--network=ic` produces the same expected output
 as on the local network.
 
-We [submit a pull request to fix the docs][pr].
+We [submit a pull request to fix what we can in docs][pr].
 
 [pr]: https://github.com/dfinity/docs/pull/289
 
@@ -1126,12 +1200,13 @@ This is confusing and meaningless to us.
 
 
 
-## TODO
 
+
+## TODO
 
 First impressions are important.
 Someone trying to run dfinity right now
-is seeing a lot of missing polish.
+is seeing a lot of easily fixable rough edges.
 
 
 I have been vaguelly aware of dfinity for a while,
